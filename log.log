@@ -1,0 +1,6 @@
+2025-10-27 13:57:04,972 - INFO - [SERVERGUI] - Buttons reversed
+2025-10-27 13:57:04,972 - INFO - [SERVERBL] - Start button clicked
+2025-10-27 13:57:04,973 - INFO - [SERVERBL] - Socket created
+2025-10-27 13:57:04,973 - INFO - [SERVERBL] - Socket bound
+2025-10-27 13:57:04,973 - INFO - [SERVERBL] - Socket listening
+2025-10-27 13:57:04,973 - INFO - [SERVERBL] - Accept thread started
