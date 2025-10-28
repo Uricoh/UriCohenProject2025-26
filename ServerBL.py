@@ -33,13 +33,10 @@ class ServerBL:
             self._logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
 
     def receive(self):
-        try:
-            data = self._client_socket.recv(1024)
-            self._logger.info("[SERVERBL] - Data received")
-            user_data = json.loads(data.decode('utf-8'))
-            self._logger.info(f"[SERVERBL] - Data received, Username: {user_data[0]}, Password: {user_data[1]}")
-        except Exception as e:
-            self._logger.info(f"[SERVERBL] - {e}")
+        data = self._client_socket.recv(1024)
+        self._logger.info("[SERVERBL] - Data received")
+        user_data = json.loads(data.decode('utf-8'))
+        self._logger.info(f"[SERVERBL] - Data received, Username: {user_data[0]}, Password: {user_data[1]}")
 
     def on_click_stop(self):
         self._logger.info("[SERVERBL] - Stop button clicked")

@@ -27,3 +27,44 @@
 2025-10-28 09:28:54,324 - INFO - [SERVERGUI] - Buttons reversed
 2025-10-28 09:28:54,324 - INFO - [SERVERBL] - Stop button clicked
 2025-10-28 09:28:54,324 - INFO - [SERVERBL] - Server closed
+2025-10-28 09:30:45,291 - INFO - [SERVERGUI] - Buttons reversed
+2025-10-28 09:30:45,291 - INFO - [SERVERBL] - Start button clicked
+2025-10-28 09:30:45,292 - INFO - [SERVERBL] - Socket created
+2025-10-28 09:30:45,292 - INFO - [SERVERBL] - Socket bound
+2025-10-28 09:30:45,292 - INFO - [SERVERBL] - Socket listening
+2025-10-28 09:30:45,292 - INFO - [SERVERBL] - Accept thread started
+2025-10-28 09:30:47,363 - INFO - [CLIENTGUI] - Buttons reversed
+2025-10-28 09:30:47,364 - INFO - [CLIENTBL] - Client socket created
+2025-10-28 09:30:47,364 - INFO - [CLIENTBL] - Start button clicked
+2025-10-28 09:30:47,364 - INFO - [CLIENTBL] - Client connected to server
+2025-10-28 09:30:47,364 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 56214)
+2025-10-28 09:30:51,610 - INFO - [CLIENTGUI] - Buttons reversed
+2025-10-28 09:30:51,610 - INFO - [CLIENTBL] - Stop button clicked
+2025-10-28 09:30:51,610 - INFO - [CLIENTBL] - Client socket closed
+2025-10-28 09:30:51,610 - INFO - [SERVERBL] - Data received
+2025-10-28 09:30:56,060 - INFO - [SERVERGUI] - Buttons reversed
+2025-10-28 09:30:56,060 - INFO - [SERVERBL] - Stop button clicked
+2025-10-28 09:30:56,060 - INFO - [SERVERBL] - Server closed
+2025-10-28 09:31:53,162 - INFO - [SERVERGUI] - Buttons reversed
+2025-10-28 09:31:53,162 - INFO - [SERVERBL] - Start button clicked
+2025-10-28 09:31:53,163 - INFO - [SERVERBL] - Socket created
+2025-10-28 09:31:53,163 - INFO - [SERVERBL] - Socket bound
+2025-10-28 09:31:53,163 - INFO - [SERVERBL] - Socket listening
+2025-10-28 09:31:53,163 - INFO - [SERVERBL] - Accept thread started
+2025-10-28 09:31:56,338 - INFO - [CLIENTGUI] - Buttons reversed
+2025-10-28 09:31:56,339 - INFO - [CLIENTBL] - Client socket created
+2025-10-28 09:31:56,339 - INFO - [CLIENTBL] - Start button clicked
+2025-10-28 09:31:56,339 - INFO - [CLIENTBL] - Client connected to server
+2025-10-28 09:31:56,340 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 56231)
+2025-10-28 09:32:01,747 - INFO - [CLIENTGUI] - Username: 111
+2025-10-28 09:32:01,747 - INFO - [CLIENTGUI] - Password: 222
+2025-10-28 09:32:01,747 - INFO - [CLIENTGUI] - JSON made
+2025-10-28 09:32:01,747 - INFO - [CLIENTGUI] - Data sent to server
+2025-10-28 09:32:01,747 - INFO - [SERVERBL] - Data received
+2025-10-28 09:32:01,747 - INFO - [SERVERBL] - Data received, Username: 111, Password: 222
+2025-10-28 09:32:02,810 - INFO - [CLIENTGUI] - Buttons reversed
+2025-10-28 09:32:02,810 - INFO - [CLIENTBL] - Stop button clicked
+2025-10-28 09:32:02,810 - INFO - [CLIENTBL] - Client socket closed
+2025-10-28 09:32:04,355 - INFO - [SERVERGUI] - Buttons reversed
+2025-10-28 09:32:04,355 - INFO - [SERVERBL] - Stop button clicked
+2025-10-28 09:32:04,355 - INFO - [SERVERBL] - Server closed
