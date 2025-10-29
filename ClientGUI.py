@@ -66,13 +66,20 @@ class ClientGUI(GUI, ClientBL):
         ClientBL.on_click_stop(self)
 
     def on_click_signup_gui(self):
+        # Get username and password
         self._username = self._username_text.get()
         self._password = self._password_text.get()
+
         self._logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
         self._logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
+
+        # Make JSON
         user_data = (self._username, self._password)
         json_data = json.dumps(user_data)
+
         self._logger.info("[CLIENTGUI] - JSON made")
+
+        # Send JSON to server
         self._socket.sendall(json_data.encode('utf-8'))
         self._logger.info("[CLIENTGUI] - Data sent to server")
 
