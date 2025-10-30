@@ -39,7 +39,7 @@ class ClientGUI(GUI, ClientBL):
         self._password = None
 
         # Manage buttons
-        self._manage_buttons(first=True)
+        self._manage_buttons(True)
 
     def _manage_buttons(self, first: bool):
         if self._started:
