@@ -35,7 +35,6 @@ class ServerBL:
     def receive(self):
         while True:
             data = self._client_socket.recv(1024)
-            self._logger.info("[SERVERBL] - Data received")
             user_data = json.loads(data.decode('utf-8'))
             self._logger.info(f"[SERVERBL] - Data received, Username: {user_data[0]}, Password: {user_data[1]}")
 
