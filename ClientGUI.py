@@ -39,7 +39,7 @@ class ClientGUI(GUI, ClientBL):
         self._password = None
 
         # Manage buttons
-        self._manage_buttons(first=True)
+        self._manage_buttons(True)
 
     def _manage_buttons(self, first: bool):
         if self._started:
@@ -57,12 +57,12 @@ class ClientGUI(GUI, ClientBL):
 
     def on_click_start_gui(self):
         self._started = True
-        self._manage_buttons(first=False)
+        self._manage_buttons(False)
         ClientBL.on_click_start(self)
 
     def on_click_stop_gui(self):
         self._started = False
-        self._manage_buttons(first=False)
+        self._manage_buttons(False)
         ClientBL.on_click_stop(self)
 
     def on_click_signup_gui(self):
