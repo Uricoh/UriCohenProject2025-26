@@ -10,7 +10,6 @@ class ServerBL:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename="log.log")
         self._logger = logging.getLogger(__name__)
         self._socket = None
-        self._client_socket_list = []
         self._client_socket = None
         self._receive_thread_list = []
 
@@ -30,13 +29,13 @@ class ServerBL:
         while True:
             (self._client_socket, client_address) = self._socket.accept()
             self._client_socket_list.append(self._client_socket)
-            self._receive_thread_list.append(threading.Thread(target=self.receive, daemon=True, args=[self._client_socket_list.index(self._client_socket)]))
+            self._receive_thread_list.append(threading.Thread(target=self.receive, daemon=True, args=[self._client_socket]))
             self._receive_thread_list[-1].start()
             self._logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
 
-    def receive(self, client_id: int):
+    def receive(self, client_socket):
         while True:
-            data = self._client_socket_list[client_id].recv(1024)
+            data = client_socket.recv(1024)
             user_data = json.loads(data.decode('utf-8'))
             self._logger.info(f"[SERVERBL] - Data received, Username: {user_data[0]}, Password: {user_data[1]}")
 
