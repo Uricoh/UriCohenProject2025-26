@@ -30,7 +30,7 @@ class ServerBL:
         while True:
             (self._client_socket, client_address) = self._socket.accept()
             self._client_socket_list.append(self._client_socket)
-            self._receive_thread_list.append(threading.Thread(target=self.receive, daemon=True, args=[(self._client_socket_list.index(self._client_socket))]))
+            self._receive_thread_list.append(threading.Thread(target=self.receive, daemon=True, args=[self._client_socket_list.index(self._client_socket)]))
             self._receive_thread_list[-1].start()
             self._logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
 
