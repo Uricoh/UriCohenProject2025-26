@@ -10,7 +10,6 @@ class ServerBL:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename="log.log")
         self._logger = logging.getLogger(__name__)
         self._socket = None
-        self._client_socket = None
         self._receive_thread_list = []
 
     def on_click_start(self):
@@ -27,9 +26,8 @@ class ServerBL:
 
     def accept(self):
         while True:
-            (self._client_socket, client_address) = self._socket.accept()
-            self._client_socket_list.append(self._client_socket)
-            self._receive_thread_list.append(threading.Thread(target=self.receive, daemon=True, args=[self._client_socket]))
+            (client_socket, client_address) = self._socket.accept()
+            self._receive_thread_list.append(threading.Thread(target=self.receive, daemon=True, args=[client_socket]))
             self._receive_thread_list[-1].start()
             self._logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
 
