@@ -76,7 +76,6 @@ class ClientGUI(GUI, ClientBL):
         # Make JSON
         user_data = (self._username, self._password)
         json_data = json.dumps(user_data)
-
         self._logger.info("[CLIENTGUI] - JSON made")
 
         # Send JSON to server

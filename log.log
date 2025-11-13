@@ -1,22 +1,24 @@
-2025-11-06 11:17:17,192 - INFO - [SERVERGUI] - Buttons reversed
-2025-11-06 11:17:17,193 - INFO - [SERVERBL] - Start button clicked
-2025-11-06 11:17:17,193 - INFO - [SERVERBL] - Socket created
-2025-11-06 11:17:17,193 - INFO - [SERVERBL] - Socket bound
-2025-11-06 11:17:17,193 - INFO - [SERVERBL] - Socket listening
-2025-11-06 11:17:17,193 - INFO - [SERVERBL] - Accept thread started
-2025-11-06 11:17:18,928 - INFO - [CLIENTGUI] - Buttons reversed
-2025-11-06 11:17:18,929 - INFO - [CLIENTBL] - Client socket created
-2025-11-06 11:17:18,929 - INFO - [CLIENTBL] - Start button clicked
-2025-11-06 11:17:18,929 - INFO - [CLIENTBL] - Client connected to server
-2025-11-06 11:17:18,930 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 64106)
-2025-11-06 11:17:22,448 - INFO - [CLIENTGUI] - Username: 111
-2025-11-06 11:17:22,448 - INFO - [CLIENTGUI] - Password: 222
-2025-11-06 11:17:22,448 - INFO - [CLIENTGUI] - JSON made
-2025-11-06 11:17:22,449 - INFO - [CLIENTGUI] - Data sent to server
-2025-11-06 11:17:22,449 - INFO - [SERVERBL] - Data received, Username: 111, Password: 222
-2025-11-06 11:17:22,961 - INFO - [CLIENTGUI] - Buttons reversed
-2025-11-06 11:17:22,961 - INFO - [CLIENTBL] - Stop button clicked
-2025-11-06 11:17:22,961 - INFO - [CLIENTBL] - Client socket closed
-2025-11-06 11:17:24,784 - INFO - [SERVERGUI] - Buttons reversed
-2025-11-06 11:17:24,784 - INFO - [SERVERBL] - Stop button clicked
-2025-11-06 11:17:24,785 - INFO - [SERVERBL] - Server closed
+2025-11-13 11:17:26,017 - INFO - [SERVERGUI] - Buttons reversed
+2025-11-13 11:17:26,018 - INFO - [SERVERBL] - Start button clicked
+2025-11-13 11:17:26,019 - INFO - [SERVERBL] - Socket created
+2025-11-13 11:17:26,019 - INFO - [SERVERBL] - Socket bound
+2025-11-13 11:17:26,019 - INFO - [SERVERBL] - Socket listening
+2025-11-13 11:17:26,019 - INFO - [SERVERBL] - Accept thread started
+2025-11-13 11:17:29,122 - INFO - [CLIENTGUI] - Buttons reversed
+2025-11-13 11:17:29,123 - INFO - [CLIENTBL] - Client socket created
+2025-11-13 11:17:29,123 - INFO - [CLIENTBL] - Start button clicked
+2025-11-13 11:17:29,123 - INFO - [CLIENTBL] - Client connected to server
+2025-11-13 11:17:29,123 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 57372)
+2025-11-13 11:17:36,970 - INFO - [CLIENTGUI] - Username: rdsgxdr
+2025-11-13 11:17:36,970 - INFO - [CLIENTGUI] - Password: ergeefgae
+2025-11-13 11:17:36,970 - INFO - [CLIENTGUI] - JSON made
+2025-11-13 11:17:36,970 - INFO - [CLIENTGUI] - Data sent to server
+2025-11-13 11:17:36,970 - INFO - [CLIENTHANDLER] - Data: b'["rdsgxdr", "ergeefgae"]'
+2025-11-13 11:17:36,970 - INFO - [CLIENTHANDLER] - Data received, Username: rdsgxdr, Password: ergeefgae
+2025-11-13 11:17:36,975 - INFO - [CLIENTHANDLER] - Data entered, Username: rdsgxdr, Password: ergeefgae
+2025-11-13 11:17:37,618 - INFO - [CLIENTGUI] - Buttons reversed
+2025-11-13 11:17:37,618 - INFO - [CLIENTBL] - Stop button clicked
+2025-11-13 11:17:37,618 - INFO - [CLIENTBL] - Client socket closed
+2025-11-13 11:17:39,409 - INFO - [SERVERGUI] - Buttons reversed
+2025-11-13 11:17:39,410 - INFO - [SERVERBL] - Stop button clicked
+2025-11-13 11:17:39,410 - INFO - [SERVERBL] - Server closed
