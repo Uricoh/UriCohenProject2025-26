@@ -3,6 +3,8 @@ import logging
 import threading
 import socket
 import json
+import sqlite3
+import ClientHandler
 
 
 class ServerBL:
@@ -10,7 +12,9 @@ class ServerBL:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename="log.log")
         self._logger = logging.getLogger(__name__)
         self._socket = None
-        self._receive_thread_list = []
+        self._client_handler_list = []
+        self._client_handler_thread_list = []
+        self._running = False
 
     def on_click_start(self):
         self._logger.info("[SERVERBL] - Start button clicked")
@@ -22,22 +26,26 @@ class ServerBL:
         self._logger.info("[SERVERBL] - Socket listening")
         accept_thread = threading.Thread(target=self.accept, daemon=True)
         self._logger.info("[SERVERBL] - Accept thread started")
+        self._running = True
         accept_thread.start()
 
     def accept(self):
         while True:
-            (client_socket, client_address) = self._socket.accept()
-            self._receive_thread_list.append(threading.Thread(target=self.receive, daemon=True, args=[client_socket]))
-            self._receive_thread_list[-1].start()
-            self._logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
+            if self._running:
+                (client_socket, client_address) = self._socket.accept()
+                self._logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
+                self._client_handler_thread_list.append(threading.Thread(target=self.create_accept_thread, daemon=True, args=[client_socket]))
+                self._client_handler_thread_list[-1].start()
+            else:
+                break
 
-    def receive(self, client_socket):
-        while True:
-            data = client_socket.recv(1024)
-            user_data = json.loads(data.decode('utf-8'))
-            self._logger.info(f"[SERVERBL] - Data received, Username: {user_data[0]}, Password: {user_data[1]}")
+    def create_accept_thread(self, client_socket):
+        client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket, self._logger)
+        self._client_handler_list.append(client_handler)
+        self._logger.info(f"[SERVERBL] - ClientHandler created")
 
     def on_click_stop(self):
         self._logger.info("[SERVERBL] - Stop button clicked")
+        self._running = False
         self._socket.close()
         self._logger.info("[SERVERBL] - Server closed")
