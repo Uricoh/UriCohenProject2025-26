@@ -2,8 +2,6 @@ import protocol
 import logging
 import threading
 import socket
-import json
-import sqlite3
 import ClientHandler
 
 
@@ -14,7 +12,6 @@ class ServerBL:
         self._socket = None
         self._client_handler_list = []
         self._client_handler_thread_list = []
-        self._running = False
 
     def on_click_start(self):
         self._logger.info("[SERVERBL] - Start button clicked")
@@ -26,17 +23,16 @@ class ServerBL:
         self._logger.info("[SERVERBL] - Socket listening")
         accept_thread = threading.Thread(target=self.accept, daemon=True)
         self._logger.info("[SERVERBL] - Accept thread started")
-        self._running = True
         accept_thread.start()
 
     def accept(self):
         while True:
-            if self._running:
+            try:
                 (client_socket, client_address) = self._socket.accept()
                 self._logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
                 self._client_handler_thread_list.append(threading.Thread(target=self.create_accept_thread, daemon=True, args=[client_socket]))
                 self._client_handler_thread_list[-1].start()
-            else:
+            finally:
                 break
 
     def create_accept_thread(self, client_socket):
@@ -46,6 +42,5 @@ class ServerBL:
 
     def on_click_stop(self):
         self._logger.info("[SERVERBL] - Stop button clicked")
-        self._running = False
         self._socket.close()
         self._logger.info("[SERVERBL] - Server closed")

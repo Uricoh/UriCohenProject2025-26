@@ -1,5 +1,4 @@
 import datetime
-import json
 
 PORT: int = 8822
 SERVER_IP: str = "127.0.0.1"
@@ -17,4 +16,3 @@ def gettimeastext() -> str:
     current_datetime = datetime.datetime.now()
     formatted_datetime_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
     return formatted_datetime_string
-
