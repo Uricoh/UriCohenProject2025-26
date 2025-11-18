@@ -14,5 +14,5 @@ bg_path: str = "background.jpg"
 
 def gettimeastext() -> str:
     current_datetime = datetime.datetime.now()
-    formatted_datetime_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
+    formatted_datetime_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
     return formatted_datetime_string
