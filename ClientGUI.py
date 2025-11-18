@@ -53,7 +53,7 @@ class ClientGUI(GUI, ClientBL):
             self._signup_button.config(state=tk.DISABLED)
             self._login_button.config(state=tk.DISABLED)
         if not first:
-            self._logger.info("[CLIENTGUI] - Buttons reversed")
+            protocol.logger.info("[CLIENTGUI] - Buttons reversed")
 
     def on_click_start_gui(self):
         self._started = True
@@ -70,17 +70,17 @@ class ClientGUI(GUI, ClientBL):
         self._username = self._username_text.get()
         self._password = self._password_text.get()
 
-        self._logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
-        self._logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
 
         # Make JSON
         user_data = (self._username, self._password)
         json_data = json.dumps(user_data)
-        self._logger.info("[CLIENTGUI] - JSON made")
+        protocol.logger.info("[CLIENTGUI] - JSON made")
 
         # Send JSON to server
         self._socket.sendall(json_data.encode('utf-8'))
-        self._logger.info("[CLIENTGUI] - Data sent to server")
+        protocol.logger.info("[CLIENTGUI] - Data sent to server")
 
 
 if __name__ == "__main__":
