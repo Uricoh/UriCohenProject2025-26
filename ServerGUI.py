@@ -16,27 +16,31 @@ class ServerGUI(GUI, ServerBL):
         self._start_button.place(x=protocol.buttons_x, y=80)
         self._stop_button.place(x=protocol.buttons_x, y=230)
 
-        # Manage buttons
-        self._manage_buttons(first=True)
+        self.first: bool = True
 
-    def _manage_buttons(self, first: bool):
+        # Manage buttons
+        self._manage_buttons()
+
+    def _manage_buttons(self):
         if self._started:
             self._start_button.config(state=tk.DISABLED)
             self._stop_button.config(state=tk.NORMAL)
         else:
             self._start_button.config(state=tk.NORMAL)
             self._stop_button.config(state=tk.DISABLED)
-        if not first:
+        if self.first:
+            self.first = False
+        else:
             protocol.logger.info("[SERVERGUI] - Buttons reversed")
 
     def on_click_start_gui(self):
         self._started = True
-        self._manage_buttons(False)
+        self._manage_buttons()
         ServerBL.on_click_start(self)
 
     def on_click_stop_gui(self):
         self._started = False
-        self._manage_buttons(False)
+        self._manage_buttons()
         ServerBL.on_click_stop(self)
 
 

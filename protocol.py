@@ -12,7 +12,6 @@ labels_x: int = 50
 buttons_x: int = 1000
 bg_path: str = "background.jpg"
 log_path: str = "log.log"
-
 db_name: str = "database.db"
 tbl_name: str = "USERTBL"
 

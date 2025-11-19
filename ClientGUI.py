@@ -22,7 +22,7 @@ class ClientGUI(GUI, ClientBL):
         self._start_button = tk.Button(self._root, text="Start", font=protocol.font, command=self.on_click_start_gui)
         self._stop_button = tk.Button(self._root, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._signup_button = tk.Button(self._root, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
-        self._login_button = tk.Button(self._root, text="Log in", font=protocol.font)
+        self._login_button = tk.Button(self._root, text="Log in", font=protocol.font, command=self.on_click_login_gui)
 
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
@@ -38,10 +38,12 @@ class ClientGUI(GUI, ClientBL):
         self._username = None
         self._password = None
 
-        # Manage buttons
-        self._manage_buttons(True)
+        self.first = True
 
-    def _manage_buttons(self, first: bool):
+        # Manage buttons
+        self._manage_buttons()
+
+    def _manage_buttons(self):
         if self._started:
             self._start_button.config(state=tk.DISABLED)
             self._stop_button.config(state=tk.NORMAL)
@@ -52,17 +54,19 @@ class ClientGUI(GUI, ClientBL):
             self._stop_button.config(state=tk.DISABLED)
             self._signup_button.config(state=tk.DISABLED)
             self._login_button.config(state=tk.DISABLED)
-        if not first:
+        if self.first:
+            self.first = False
+        else:
             protocol.logger.info("[CLIENTGUI] - Buttons reversed")
 
     def on_click_start_gui(self):
         self._started = True
-        self._manage_buttons(False)
+        self._manage_buttons()
         ClientBL.on_click_start(self)
 
     def on_click_stop_gui(self):
         self._started = False
-        self._manage_buttons(False)
+        self._manage_buttons()
         ClientBL.on_click_stop(self)
 
     def on_click_signup_gui(self):
@@ -74,7 +78,7 @@ class ClientGUI(GUI, ClientBL):
         protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
 
         # Make JSON
-        user_data = (self._username, self._password)
+        user_data = ("SIGNUP", self._username, self._password)
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
@@ -82,6 +86,22 @@ class ClientGUI(GUI, ClientBL):
         self._socket.sendall(json_data.encode('utf-8'))
         protocol.logger.info("[CLIENTGUI] - Data sent to server")
 
+    def on_click_login_gui(self):
+        # Get username and password
+        self._username = self._username_text.get()
+        self._password = self._password_text.get()
+
+        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
+
+        # Make JSON
+        user_data = ("LOGIN", self._username, self._password)
+        json_data = json.dumps(user_data)
+        protocol.logger.info("[CLIENTGUI] - JSON made")
+
+        # Send JSON to server
+        self._socket.sendall(json_data.encode('utf-8'))
+        protocol.logger.info("[CLIENTGUI] - Data sent to server")
 
 if __name__ == "__main__":
     client_screen: ClientGUI = ClientGUI()

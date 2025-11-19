@@ -1,27 +1,19 @@
-2025-11-18 22:20:52,860 - INFO - [PROTOCOL] - Logger created
-2025-11-18 22:20:52,909 - INFO - [DBPROTOCOL] - SQL connection established
-2025-11-18 22:20:54,789 - INFO - [SERVERGUI] - Buttons reversed
-2025-11-18 22:20:54,789 - INFO - [SERVERBL] - Start button clicked
-2025-11-18 22:20:54,791 - INFO - [SERVERBL] - Socket created
-2025-11-18 22:20:54,791 - INFO - [SERVERBL] - Socket bound
-2025-11-18 22:20:54,791 - INFO - [SERVERBL] - Socket listening
-2025-11-18 22:20:54,791 - INFO - [SERVERBL] - Accept thread started
-2025-11-18 22:20:57,953 - INFO - [PROTOCOL] - Logger created
-2025-11-18 22:21:03,190 - INFO - [CLIENTGUI] - Buttons reversed
-2025-11-18 22:21:03,191 - INFO - [CLIENTBL] - Client socket created
-2025-11-18 22:21:03,191 - INFO - [CLIENTBL] - Start button clicked
-2025-11-18 22:21:03,192 - INFO - [CLIENTBL] - Client connected to server
-2025-11-18 22:21:03,192 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 53940)
-2025-11-18 22:21:10,076 - INFO - [CLIENTGUI] - Username: finally
-2025-11-18 22:21:10,077 - INFO - [CLIENTGUI] - Password: atlast
-2025-11-18 22:21:10,077 - INFO - [CLIENTGUI] - JSON made
-2025-11-18 22:21:10,077 - INFO - [CLIENTGUI] - Data sent to server
-2025-11-18 22:21:10,077 - INFO - [CLIENTHANDLER] - Data: b'["finally", "atlast"]'
-2025-11-18 22:21:10,077 - INFO - [CLIENTHANDLER] - Data received, Username: finally, Password: atlast
-2025-11-18 22:21:10,093 - INFO - [CLIENTHANDLER] - Data entered, Username: finally, Password: atlast
-2025-11-18 22:21:10,865 - INFO - [CLIENTGUI] - Buttons reversed
-2025-11-18 22:21:10,865 - INFO - [CLIENTBL] - Stop button clicked
-2025-11-18 22:21:10,866 - INFO - [CLIENTBL] - Client socket closed
-2025-11-18 22:21:13,835 - INFO - [SERVERGUI] - Buttons reversed
-2025-11-18 22:21:13,835 - INFO - [SERVERBL] - Stop button clicked
-2025-11-18 22:21:13,836 - INFO - [SERVERBL] - Server closed
+2025-11-19 10:28:27,052 - INFO - [PROTOCOL] - Logger created
+2025-11-19 10:28:27,070 - INFO - [DBPROTOCOL] - SQL connection established
+2025-11-19 10:28:29,340 - INFO - [PROTOCOL] - Logger created
+2025-11-19 10:28:35,798 - INFO - [SERVERGUI] - Buttons reversed
+2025-11-19 10:28:35,798 - INFO - [SERVERBL] - Start button clicked
+2025-11-19 10:28:35,801 - INFO - [SERVERBL] - Socket created
+2025-11-19 10:28:35,801 - INFO - [SERVERBL] - Socket bound
+2025-11-19 10:28:35,801 - INFO - [SERVERBL] - Socket listening
+2025-11-19 10:28:35,802 - INFO - [SERVERBL] - Accept thread started
+2025-11-19 10:28:39,417 - INFO - [CLIENTGUI] - Buttons reversed
+2025-11-19 10:28:39,419 - INFO - [CLIENTBL] - Client socket created
+2025-11-19 10:28:39,420 - INFO - [CLIENTBL] - Start button clicked
+2025-11-19 10:28:39,420 - INFO - [CLIENTBL] - Client connected to server
+2025-11-19 10:28:39,421 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 56080)
+2025-11-19 10:28:47,244 - INFO - [CLIENTGUI] - Username: gabi
+2025-11-19 10:28:47,245 - INFO - [CLIENTGUI] - Password: ataomo
+2025-11-19 10:28:47,245 - INFO - [CLIENTGUI] - JSON made
+2025-11-19 10:28:47,245 - INFO - [CLIENTGUI] - Data sent to server
+2025-11-19 10:28:47,246 - INFO - Login successful, ('gabi', 'ataomo')
