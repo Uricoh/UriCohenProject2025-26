@@ -1,28 +1,39 @@
 import tkinter as tk
 import protocol
-from GUI import GUI
 import json
 from ClientBL import ClientBL
+import threading
+from tkinter import PhotoImage
+from PIL import Image, ImageTk
+from typing import cast
 
 
-class ClientGUI(GUI, ClientBL):
+class LoginFrame(ClientBL, tk.Frame):
     def __init__(self):
-        GUI.__init__(self)
         ClientBL.__init__(self)
+        tk.Frame.__init__(self)
+
+        # Show background image
+        bg_image = Image.open(protocol.bg_path)
+        bg_reimage = bg_image.resize((protocol.size1, protocol.size2))
+        self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
+        self.bg_label = tk.Label(self, image=self.bg_pimage)
+        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        self._started: bool = False
 
         # Create labels
-        username_label = tk.Label(self._root, text="Username:", font=protocol.font)
-        password_label = tk.Label(self._root, text="Password:", font=protocol.font)
+        username_label = tk.Label(self, text="Username:", font=protocol.font)
+        password_label = tk.Label(self, text="Password:", font=protocol.font)
 
         # Create text fields
-        self._username_text = tk.Entry(self._root, width=protocol.text_width, font=protocol.font)
-        self._password_text = tk.Entry(self._root, width=protocol.text_width, font=protocol.font)
+        self._username_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
+        self._password_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
 
         # Create buttons
-        self._start_button = tk.Button(self._root, text="Start", font=protocol.font, command=self.on_click_start_gui)
-        self._stop_button = tk.Button(self._root, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
-        self._signup_button = tk.Button(self._root, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
-        self._login_button = tk.Button(self._root, text="Log in", font=protocol.font, command=self.on_click_login_gui)
+        self._start_button = tk.Button(self, text="Start", font=protocol.font, command=self.on_click_start_gui)
+        self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
+        self._signup_button = tk.Button(self, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
+        self._login_button = tk.Button(self, text="Log in", font=protocol.font, command=self.on_click_login_gui)
 
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
@@ -42,6 +53,8 @@ class ClientGUI(GUI, ClientBL):
 
         # Manage buttons
         self._manage_buttons()
+
+        self.listen_thread = None
 
     def _manage_buttons(self):
         if self._started:
@@ -63,6 +76,9 @@ class ClientGUI(GUI, ClientBL):
         self._started = True
         self._manage_buttons()
         ClientBL.on_click_start(self)
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self._socket)}")
+        self.listen_thread = threading.Thread(target=self.listen, daemon=True)
+        self.listen_thread.start()
 
     def on_click_stop_gui(self):
         self._started = False
@@ -103,6 +119,53 @@ class ClientGUI(GUI, ClientBL):
         self._socket.sendall(json_data.encode('utf-8'))
         protocol.logger.info("[CLIENTGUI] - Data sent to server")
 
+    def listen(self):
+        while True:
+            try:
+                data = self._socket.recv(1024).decode('utf-8')
+                if data == "LOGIN":
+                    protocol.logger.info("[CLIENTGUI] - Received login")
+                    cast(ClientApp, self.master).show_main()
+            except OSError:
+                break
+
+
+class MainFrame(ClientBL, tk.Frame):
+    def __init__(self, old_bl):
+        tk.Frame.__init__(self)
+        self._socket = old_bl.get_socket()
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self._socket)}")
+
+        # Show background image
+        bg_image = Image.open(protocol.bg_path)
+        bg_reimage = bg_image.resize((protocol.size1, protocol.size2))
+        self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
+        self.bg_label = tk.Label(self, image=self.bg_pimage)
+        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        self._started: bool = False
+
+        self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
+        self._stop_button.place(x=protocol.buttons_x, y=230)
+
+    def on_click_stop_gui(self):
+        # More commands to follow
+        ClientBL.on_click_stop(self)
+
+class ClientApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Currency Converter - Start Page")
+        self.geometry(f"{protocol.size1}x{protocol.size2}")
+        self._current_frame = LoginFrame()
+        self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    def show_main(self):
+        bl = self._current_frame
+        self._current_frame.destroy()
+        self._current_frame = MainFrame(bl)
+        self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+
 if __name__ == "__main__":
-    client_screen: ClientGUI = ClientGUI()
-    client_screen.run()
+    app: ClientApp = ClientApp()
+    app.mainloop()

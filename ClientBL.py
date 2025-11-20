@@ -17,3 +17,6 @@ class ClientBL:
         protocol.logger.info("[CLIENTBL] - Stop button clicked")
         self._socket.close()
         protocol.logger.info("[CLIENTBL] - Client socket closed")
+
+    def get_socket(self):
+        return self._socket

@@ -27,16 +27,20 @@ class ServerBL:
         while True:
             try:
                 (client_socket, client_address) = self._socket.accept()
+                self.create_accept_thread(client_socket)
                 protocol.logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
-                self._client_handler_thread_list.append(threading.Thread(target=self.create_accept_thread, daemon=True, args=[client_socket]))
-                self._client_handler_thread_list[-1].start()
             finally:
                 break
 
     def create_accept_thread(self, client_socket):
-        client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket)
-        self._client_handler_list.append(client_handler)
+        self._client_handler_thread_list.append(threading.Thread(target=self.create_client_handler, daemon=True, args=[client_socket]))
+        self._client_handler_thread_list[-1].start()
         protocol.logger.info(f"[SERVERBL] - ClientHandler created")
+
+    def create_client_handler(self, client_socket):
+        client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket, self._socket)
+        self._client_handler_list.append(client_handler)
+
 
     def on_click_stop(self):
         protocol.logger.info("[SERVERBL] - Stop button clicked")
