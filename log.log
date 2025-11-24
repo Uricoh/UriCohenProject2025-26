@@ -1,29 +1,11 @@
-2025-11-20 21:21:06,265 - INFO - [PROTOCOL] - Logger created
-2025-11-20 21:21:06,303 - INFO - [DBPROTOCOL] - SQL connection established
-2025-11-20 21:21:17,605 - INFO - [SERVERGUI] - Buttons reversed
-2025-11-20 21:21:17,605 - INFO - [SERVERBL] - Start button clicked
-2025-11-20 21:21:17,607 - INFO - [SERVERBL] - Socket created
-2025-11-20 21:21:17,607 - INFO - [SERVERBL] - Socket bound
-2025-11-20 21:21:17,607 - INFO - [SERVERBL] - Socket listening
-2025-11-20 21:21:17,607 - INFO - [SERVERBL] - Accept thread started
-2025-11-20 21:21:25,013 - INFO - [PROTOCOL] - Logger created
-2025-11-20 21:21:35,400 - INFO - [CLIENTGUI] - Buttons reversed
-2025-11-20 21:21:35,401 - INFO - [CLIENTBL] - Client socket created
-2025-11-20 21:21:35,401 - INFO - [CLIENTBL] - Start button clicked
-2025-11-20 21:21:35,402 - INFO - [CLIENTBL] - Client connected to server
-2025-11-20 21:21:35,402 - INFO - [CLIENTGUI] - Socket ID: 1897599598672
-2025-11-20 21:21:35,403 - INFO - [SERVERBL] - ClientHandler created
-2025-11-20 21:21:35,403 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 61052)
-2025-11-20 21:21:57,845 - INFO - [CLIENTGUI] - Username: baby
-2025-11-20 21:21:57,846 - INFO - [CLIENTGUI] - Password: oh
-2025-11-20 21:21:57,846 - INFO - [CLIENTGUI] - JSON made
-2025-11-20 21:21:57,846 - INFO - [CLIENTGUI] - Data sent to server
-2025-11-20 21:21:57,846 - INFO - [CLIENTHANDLER] - Login attempt successful, Username: baby, Password: oh
-2025-11-20 21:21:57,847 - INFO - [CLIENTHANDLER] - Login message sent
-2025-11-20 21:21:57,847 - INFO - [CLIENTGUI] - Received login
-2025-11-20 21:21:57,857 - INFO - [CLIENTGUI] - Socket ID: 1897599598672
-2025-11-20 21:22:18,524 - INFO - [CLIENTBL] - Stop button clicked
-2025-11-20 21:22:18,525 - INFO - [CLIENTBL] - Client socket closed
-2025-11-20 21:22:33,490 - INFO - [SERVERGUI] - Buttons reversed
-2025-11-20 21:22:33,490 - INFO - [SERVERBL] - Stop button clicked
-2025-11-20 21:22:33,491 - INFO - [SERVERBL] - Server closed
+2025-11-24 23:31:28,690 - INFO - [PROTOCOL] - Logger created
+2025-11-24 23:31:28,718 - INFO - [DBPROTOCOL] - SQL connection established
+2025-11-24 23:31:31,498 - INFO - [SERVERGUI] - Stop button deactivated
+2025-11-24 23:31:31,498 - INFO - [SERVERBL] - Start button clicked
+2025-11-24 23:31:31,499 - INFO - [SERVERBL] - Socket created
+2025-11-24 23:31:31,499 - INFO - [SERVERBL] - Socket bound
+2025-11-24 23:31:31,499 - INFO - [SERVERBL] - Socket listening
+2025-11-24 23:31:31,500 - INFO - [SERVERBL] - Accept thread started
+2025-11-24 23:31:32,244 - INFO - [SERVERGUI] - Stop button deactivated
+2025-11-24 23:31:32,244 - INFO - [SERVERBL] - Stop button clicked
+2025-11-24 23:31:32,244 - INFO - [SERVERBL] - Server closed

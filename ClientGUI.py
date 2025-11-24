@@ -1,3 +1,4 @@
+# Imports
 import tkinter as tk
 import protocol
 import json
@@ -10,12 +11,13 @@ from typing import cast
 
 class LoginFrame(ClientBL, tk.Frame):
     def __init__(self):
+        # Constructors
         ClientBL.__init__(self)
         tk.Frame.__init__(self)
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
-        bg_reimage = bg_image.resize((protocol.size1, protocol.size2))
+        bg_reimage = bg_image.resize((protocol.width, protocol.height))
         self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
@@ -49,14 +51,17 @@ class LoginFrame(ClientBL, tk.Frame):
         self._username = None
         self._password = None
 
+        # First, used for manage_buttons()
         self.first = True
 
         # Manage buttons
         self._manage_buttons()
 
+        # Will only start when start button is clicked
         self.listen_thread = None
 
     def _manage_buttons(self):
+        # GUI buttons should reflect the current status of the app
         if self._started:
             self._start_button.config(state=tk.DISABLED)
             self._stop_button.config(state=tk.NORMAL)
@@ -67,6 +72,8 @@ class LoginFrame(ClientBL, tk.Frame):
             self._stop_button.config(state=tk.DISABLED)
             self._signup_button.config(state=tk.DISABLED)
             self._login_button.config(state=tk.DISABLED)
+
+        # Log that buttons were reversed only if it's not the first time that function is called, and therefore they were
         if self.first:
             self.first = False
         else:
@@ -76,7 +83,7 @@ class LoginFrame(ClientBL, tk.Frame):
         self._started = True
         self._manage_buttons()
         ClientBL.on_click_start(self)
-        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self._socket)}")
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self._socket)}") # Compare this ID with ID in other frames
         self.listen_thread = threading.Thread(target=self.listen, daemon=True)
         self.listen_thread.start()
 
@@ -89,9 +96,8 @@ class LoginFrame(ClientBL, tk.Frame):
         # Get username and password
         self._username = self._username_text.get()
         self._password = self._password_text.get()
-
-        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
-        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username}")
+        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password}")
 
         # Make JSON
         user_data = ("SIGNUP", self._username, self._password)
@@ -106,9 +112,8 @@ class LoginFrame(ClientBL, tk.Frame):
         # Get username and password
         self._username = self._username_text.get()
         self._password = self._password_text.get()
-
-        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
-        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username}")
+        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password}")
 
         # Make JSON
         user_data = ("LOGIN", self._username, self._password)
@@ -123,49 +128,57 @@ class LoginFrame(ClientBL, tk.Frame):
         while True:
             try:
                 data = self._socket.recv(1024).decode('utf-8')
+                # If user logs in or signs up, redirect to main frame
+                # Cast exists so IDE (PyCharm) won't needlessly warn "wrong type"
                 if data == "LOGIN":
-                    protocol.logger.info("[CLIENTGUI] - Received login")
+                    cast(ClientApp, self.master).show_main()
+                if data == "SIGNUP":
                     cast(ClientApp, self.master).show_main()
             except OSError:
+                # Exists to ignore the exception shown when the client is stopped but socket.recv() is still active
                 break
 
 
 class MainFrame(ClientBL, tk.Frame):
-    def __init__(self, old_bl):
+    def __init__(self, socket):
         tk.Frame.__init__(self)
-        self._socket = old_bl.get_socket()
-        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self._socket)}")
+        self._socket = socket
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self._socket)}") # Compare this ID with ID in other frames
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
-        bg_reimage = bg_image.resize((protocol.size1, protocol.size2))
+        bg_reimage = bg_image.resize((protocol.width, protocol.height))
         self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-        self._started: bool = False
 
+        # Create and place stop button
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._stop_button.place(x=protocol.buttons_x, y=230)
 
     def on_click_stop_gui(self):
-        # More commands to follow
+        self._stop_button.config(state=tk.DISABLED)
         ClientBL.on_click_stop(self)
 
 class ClientApp(tk.Tk):
     def __init__(self):
         super().__init__()
+        # All these should be done here and not in frames
         self.title("Currency Converter - Start Page")
-        self.geometry(f"{protocol.size1}x{protocol.size2}")
+        self.geometry(f"{protocol.width}x{protocol.height}")
         self._current_frame = LoginFrame()
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
     def show_main(self):
+        # Show the main frame
         bl = self._current_frame
-        self._current_frame.destroy()
-        self._current_frame = MainFrame(bl)
+        socket = bl.get_socket()
+        bl.destroy()
+        self._current_frame = MainFrame(socket)
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
 
 if __name__ == "__main__":
+    # Run client
     app: ClientApp = ClientApp()
     app.mainloop()
