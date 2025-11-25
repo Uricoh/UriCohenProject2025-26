@@ -1,11 +1,30 @@
-2025-11-24 23:31:28,690 - INFO - [PROTOCOL] - Logger created
-2025-11-24 23:31:28,718 - INFO - [DBPROTOCOL] - SQL connection established
-2025-11-24 23:31:31,498 - INFO - [SERVERGUI] - Stop button deactivated
-2025-11-24 23:31:31,498 - INFO - [SERVERBL] - Start button clicked
-2025-11-24 23:31:31,499 - INFO - [SERVERBL] - Socket created
-2025-11-24 23:31:31,499 - INFO - [SERVERBL] - Socket bound
-2025-11-24 23:31:31,499 - INFO - [SERVERBL] - Socket listening
-2025-11-24 23:31:31,500 - INFO - [SERVERBL] - Accept thread started
-2025-11-24 23:31:32,244 - INFO - [SERVERGUI] - Stop button deactivated
-2025-11-24 23:31:32,244 - INFO - [SERVERBL] - Stop button clicked
-2025-11-24 23:31:32,244 - INFO - [SERVERBL] - Server closed
+2025-11-25 09:09:49,279 - INFO - [PROTOCOL] - Logger created
+2025-11-25 09:09:53,543 - INFO - [SERVERGUI] - Stop button deactivated
+2025-11-25 09:09:53,544 - INFO - [SERVERBL] - Start button clicked
+2025-11-25 09:09:53,544 - INFO - [SERVERBL] - Socket created
+2025-11-25 09:09:53,544 - INFO - [SERVERBL] - Socket bound
+2025-11-25 09:09:53,544 - INFO - [SERVERBL] - Socket listening
+2025-11-25 09:09:53,544 - INFO - [SERVERBL] - Accept thread started
+2025-11-25 09:09:55,177 - INFO - [CLIENTGUI] - Buttons reversed
+2025-11-25 09:09:55,178 - INFO - [CLIENTBL] - Client socket created
+2025-11-25 09:09:55,178 - INFO - [CLIENTBL] - Start button clicked
+2025-11-25 09:09:55,178 - INFO - [CLIENTBL] - Client connected to server
+2025-11-25 09:09:55,178 - INFO - [CLIENTGUI] - Socket ID: 2180529017184
+2025-11-25 09:09:55,179 - INFO - [SERVERBL] - ClientHandler created
+2025-11-25 09:09:55,179 - INFO - [SERVERBL] - Client accepted, IP: ('127.0.0.1', 62139)
+2025-11-25 09:10:16,751 - INFO - [CLIENTGUI] - Username: brain
+2025-11-25 09:10:16,751 - INFO - [CLIENTGUI] - Password: ro
+2025-11-25 09:10:16,751 - INFO - [CLIENTGUI] - JSON made
+2025-11-25 09:10:16,752 - INFO - [CLIENTGUI] - Data sent to server
+2025-11-25 09:10:27,727 - INFO - [CLIENTGUI] - Username: brain
+2025-11-25 09:10:27,728 - INFO - [CLIENTGUI] - Password: rot
+2025-11-25 09:10:27,728 - INFO - [CLIENTGUI] - JSON made
+2025-11-25 09:10:27,728 - INFO - [CLIENTGUI] - Data sent to server
+2025-11-25 09:10:27,728 - INFO - [CLIENTHANDLER] - Login attempt successful, Username: brain, Password: rot
+2025-11-25 09:10:27,728 - INFO - [CLIENTHANDLER] - Login message sent
+2025-11-25 09:10:27,733 - INFO - [CLIENTGUI] - Socket ID: 2180529017184
+2025-11-25 09:11:45,296 - INFO - [CLIENTBL] - Stop button clicked
+2025-11-25 09:11:45,296 - INFO - [CLIENTBL] - Client socket closed
+2025-11-25 09:11:55,416 - INFO - [SERVERGUI] - Stop button deactivated
+2025-11-25 09:11:55,416 - INFO - [SERVERBL] - Stop button clicked
+2025-11-25 09:11:55,416 - INFO - [SERVERBL] - Server closed

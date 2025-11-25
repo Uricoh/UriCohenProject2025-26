@@ -26,10 +26,12 @@ class LoginFrame(ClientBL, tk.Frame):
         # Create labels
         username_label = tk.Label(self, text="Username:", font=protocol.font)
         password_label = tk.Label(self, text="Password:", font=protocol.font)
+        email_label = tk.Label(self, text="Email:", font=protocol.font)
 
         # Create text fields
         self._username_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
         self._password_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
+        self._email_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
 
         # Create buttons
         self._start_button = tk.Button(self, text="Start", font=protocol.font, command=self.on_click_start_gui)
@@ -40,16 +42,19 @@ class LoginFrame(ClientBL, tk.Frame):
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
         password_label.place(x=protocol.labels_x, y=220)
+        email_label.place(x=protocol.labels_x, y=420)
         self._username_text.place(x=protocol.labels_x, y=80)
         self._password_text.place(x=protocol.labels_x, y=280)
+        self._email_text.place(x=protocol.labels_x, y=480)
         self._start_button.place(x=protocol.buttons_x, y=80)
         self._stop_button.place(x=protocol.buttons_x, y=230)
         self._signup_button.place(x=protocol.buttons_x, y=380)
         self._login_button.place(x=protocol.buttons_x, y=530)
 
-        # Create username and password
+        # Create username, password and email
         self._username = None
         self._password = None
+        self._email = None
 
         # First, used for manage_buttons()
         self.first = True
@@ -96,11 +101,13 @@ class LoginFrame(ClientBL, tk.Frame):
         # Get username and password
         self._username = self._username_text.get()
         self._password = self._password_text.get()
+        self._email = self._email_text.get()
         protocol.logger.info(f"[CLIENTGUI] - Username: {self._username}")
         protocol.logger.info(f"[CLIENTGUI] - Password: {self._password}")
+        protocol.logger.info(f"[CLIENTGUI] - Email: {self._email}")
 
         # Make JSON
-        user_data = ("SIGNUP", self._username, self._password)
+        user_data = ("SIGNUP", self._username, self._password, self._email)
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
