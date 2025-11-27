@@ -37,16 +37,18 @@ class ServerBL:
                 break
 
     def create_accept_thread(self, client_socket):
-        # This, create_client_handler, and ClientHandler run in Thread B, C... (one thread per client), not in main thread
-        self._client_handler_thread_list.append(threading.Thread(target=self.create_client_handler, daemon=True, args=[client_socket]))
+        # This, create_client_handler, and ClientHandler run in Thread B, C...
+        # (one thread per client), not in main thread
+        self._client_handler_thread_list.append(threading.Thread(target=self.create_client_handler, daemon=True,
+                                                                 args=[client_socket]))
         self._client_handler_thread_list[-1].start()
         protocol.logger.info(f"[SERVERBL] - ClientHandler created")
 
     def create_client_handler(self, client_socket):
-        # This, create_accept_thread, and ClientHandler run in Thread B, C... (one thread per client), not in main thread
+        # This, create_accept_thread, and ClientHandler run in Thread B, C...
+        # (one thread per client), not in main thread
         client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket)
         self._client_handler_list.append(client_handler)
-
 
     def on_click_stop(self):
         protocol.logger.info("[SERVERBL] - Stop button clicked")

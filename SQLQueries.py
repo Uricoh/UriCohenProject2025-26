@@ -1,5 +1,4 @@
 # This file is not part of the project and is only used by the developer to modify the table
-
 import dbprotocol
 import protocol
 

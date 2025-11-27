@@ -43,12 +43,12 @@ class ServerGUI(GUI, ServerBL):
     def on_click_start_gui(self):
         self._started = True
         self._manage_buttons()
-        ServerBL.on_click_start(self)
+        self.on_click_start()
 
     def on_click_stop_gui(self):
         self._started = False
         self._manage_buttons()
-        ServerBL.on_click_stop(self)
+        self.on_click_stop()
 
 
 if __name__ == "__main__":

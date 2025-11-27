@@ -78,7 +78,8 @@ class LoginFrame(ClientBL, tk.Frame):
             self._signup_button.config(state=tk.DISABLED)
             self._login_button.config(state=tk.DISABLED)
 
-        # Log that buttons were reversed only if it's not the first time that function is called, and therefore they were
+        # Log that buttons were reversed only if it's not the first time that function is called, and
+        # therefore they were
         if self.first:
             self.first = False
         else:
@@ -87,7 +88,7 @@ class LoginFrame(ClientBL, tk.Frame):
     def on_click_start_gui(self):
         self._started = True
         self._manage_buttons()
-        ClientBL.on_click_start(self)
+        self.on_click_start()
         protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self._socket)}") # Compare this ID with ID in other frames
         self.listen_thread = threading.Thread(target=self.listen, daemon=True)
         self.listen_thread.start()
@@ -95,7 +96,7 @@ class LoginFrame(ClientBL, tk.Frame):
     def on_click_stop_gui(self):
         self._started = False
         self._manage_buttons()
-        ClientBL.on_click_stop(self)
+        self.on_click_stop()
 
     def on_click_signup_gui(self):
         # Get username and password
@@ -112,8 +113,7 @@ class LoginFrame(ClientBL, tk.Frame):
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
         # Send JSON to server
-        self._socket.sendall(json_data.encode('utf-8'))
-        protocol.logger.info("[CLIENTGUI] - Data sent to server")
+        self.send_data(json_data)
 
     def on_click_login_gui(self):
         # Get username and password
@@ -128,8 +128,7 @@ class LoginFrame(ClientBL, tk.Frame):
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
         # Send JSON to server
-        self._socket.sendall(json_data.encode('utf-8'))
-        protocol.logger.info("[CLIENTGUI] - Data sent to server")
+        self.send_data(json_data)
 
     def listen(self):
         while True:
@@ -137,9 +136,7 @@ class LoginFrame(ClientBL, tk.Frame):
                 data = self._socket.recv(1024).decode('utf-8')
                 # If user logs in or signs up, redirect to main frame
                 # Cast exists so IDE (PyCharm) won't needlessly warn "wrong type"
-                if data == "LOGIN":
-                    cast(ClientApp, self.master).show_main()
-                if data == "SIGNUP":
+                if data == "SIGNUP" or data == "LOGIN":
                     cast(ClientApp, self.master).show_main()
             except OSError:
                 # Exists to ignore the exception shown when the client is stopped but socket.recv() is still active
@@ -166,6 +163,7 @@ class MainFrame(ClientBL, tk.Frame):
     def on_click_stop_gui(self):
         self._stop_button.config(state=tk.DISABLED)
         ClientBL.on_click_stop(self)
+
 
 class ClientApp(tk.Tk):
     def __init__(self):

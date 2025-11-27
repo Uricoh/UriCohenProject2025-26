@@ -4,7 +4,7 @@ import socket
 
 class ClientBL:
     def __init__(self):
-        self._socket = None
+        self._socket: socket = None
 
     def on_click_start(self):
         # Login start button
@@ -19,6 +19,10 @@ class ClientBL:
         protocol.logger.info("[CLIENTBL] - Stop button clicked")
         self._socket.close()
         protocol.logger.info("[CLIENTBL] - Client socket closed")
+
+    def send_data(self, data):
+        self._socket.sendall(data.encode('utf-8'))
+        protocol.logger.info("[CLIENTBL] - Data sent to server")
 
     def get_socket(self):
         # Exists because _socket is protected
