@@ -36,8 +36,8 @@ class ClientHandler:
                             f'SELECT * FROM {protocol.user_tbl} WHERE username = ? AND password = ?',
                             (user_data[1], user_data[2])).fetchone()
                         if result:
-                            protocol.logger.info(
-                                f"[CLIENTHANDLER] - Login attempt successful, Username: {user_data[1]}, Password: {user_data[2]}")
+                            protocol.logger.info(f'''[CLIENTHANDLER] - Login attempt successful, 
+                            Username: {user_data[1]}, Password: {user_data[2]}''')
                             self._client_socket.sendall("LOGIN".encode('utf-8'))
                             protocol.logger.info(f"[CLIENTHANDLER] - Login message sent")
                             # No need for commit because DB hasn't been changed
