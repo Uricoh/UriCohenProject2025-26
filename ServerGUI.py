@@ -5,7 +5,6 @@ from ServerBL import *
 
 class ServerGUI(GUI, ServerBL):
     def __init__(self):
-
         # Constructors
         GUI.__init__(self)
         ServerBL.__init__(self)
