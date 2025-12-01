@@ -33,9 +33,9 @@ def get_time_as_text() -> str:
 # Commands that should be executed at the start of each program
 
 # Clear log file if it exists
-log_file = Path(log_path)
-if log_file.exists():
-    log_file.write_text("") # Overwrites file with empty string
+_log_file = Path(log_path)
+if _log_file.exists():
+    _log_file.write_text('') # Overwrites file with empty string
 
 # Create logger, one logger exists for the entire project, client and server
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=log_path)
