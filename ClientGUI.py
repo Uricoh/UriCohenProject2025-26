@@ -10,7 +10,7 @@ from typing import cast
 
 
 class StartFrame(ClientBL, tk.Frame):
-    def __init__(self):
+    def __init__(self, socket=None):
         # Constructors
         ClientBL.__init__(self)
         tk.Frame.__init__(self)
@@ -21,7 +21,8 @@ class StartFrame(ClientBL, tk.Frame):
         self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-        self._started: bool = False
+
+        self.socket = socket
 
         # Create buttons
         self._signup_button = tk.Button(self, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
@@ -31,6 +32,9 @@ class StartFrame(ClientBL, tk.Frame):
         self._signup_button.place(x=protocol.buttons_x, y=80)
         self._login_button.place(x=protocol.buttons_x, y=230)
 
+        # Configure started flag
+        self._started: bool = False
+
     def on_click_signup_gui(self):
         cast(ClientApp, self.master).show_frame(SignupFrame)
 
@@ -39,10 +43,13 @@ class StartFrame(ClientBL, tk.Frame):
 
 
 class LoginFrame(ClientBL, tk.Frame):
-    def __init__(self):
+    def __init__(self, socket=None):
         # Constructors
         ClientBL.__init__(self)
         tk.Frame.__init__(self)
+
+        if socket is not None:
+            self.socket = socket
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -50,7 +57,6 @@ class LoginFrame(ClientBL, tk.Frame):
         self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-        self._started: bool = False
 
         # Create labels
         username_label = tk.Label(self, text="Username:", font=protocol.font)
@@ -64,6 +70,7 @@ class LoginFrame(ClientBL, tk.Frame):
         self._start_button = tk.Button(self, text="Start", font=protocol.font, command=self.on_click_start_gui)
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._login_button = tk.Button(self, text="Log in", font=protocol.font, command=self.on_click_login_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.font, command=self.on_click_back_gui)
 
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
@@ -73,6 +80,7 @@ class LoginFrame(ClientBL, tk.Frame):
         self._start_button.place(x=protocol.buttons_x, y=80)
         self._stop_button.place(x=protocol.buttons_x, y=230)
         self._login_button.place(x=protocol.buttons_x, y=380)
+        self._back_button.place(x=protocol.buttons_x, y=530)
 
         # Create username, password and email
         self._username = None
@@ -80,6 +88,9 @@ class LoginFrame(ClientBL, tk.Frame):
 
         # First, used for manage_buttons()
         self.first = True
+
+        # Configure started flag
+        self._started: bool = False
 
         # Manage buttons
         self._manage_buttons()
@@ -133,6 +144,9 @@ class LoginFrame(ClientBL, tk.Frame):
         # Send JSON to server
         self.send_data(json_data)
 
+    def on_click_back_gui(self):
+        cast(ClientApp, self.master).show_frame(StartFrame)
+
     def listen(self):
         while True:
             try:
@@ -147,10 +161,13 @@ class LoginFrame(ClientBL, tk.Frame):
 
 
 class SignupFrame(ClientBL, tk.Frame):
-    def __init__(self):
+    def __init__(self, socket=None):
         # Constructors
         ClientBL.__init__(self)
         tk.Frame.__init__(self)
+
+        if socket is not None:
+            self.socket = socket
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -158,12 +175,12 @@ class SignupFrame(ClientBL, tk.Frame):
         self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-        self._started: bool = False
 
         # Create labels
         username_label = tk.Label(self, text="Username:", font=protocol.font)
         password_label = tk.Label(self, text="Password:", font=protocol.font)
         email_label = tk.Label(self, text="Email:", font=protocol.font)
+
         # Create text fields
         self._username_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
         self._password_text = tk.Entry(self, width=protocol.text_width, font=protocol.font, show='•')
@@ -173,6 +190,7 @@ class SignupFrame(ClientBL, tk.Frame):
         self._start_button = tk.Button(self, text="Start", font=protocol.font, command=self.on_click_start_gui)
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._signup_button = tk.Button(self, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.font, command=self.on_click_back_gui)
 
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
@@ -184,6 +202,7 @@ class SignupFrame(ClientBL, tk.Frame):
         self._start_button.place(x=protocol.buttons_x, y=80)
         self._stop_button.place(x=protocol.buttons_x, y=230)
         self._signup_button.place(x=protocol.buttons_x, y=380)
+        self._back_button.place(x=protocol.buttons_x, y=530)
 
         # Create username, password and email
         self._username = None
@@ -193,10 +212,13 @@ class SignupFrame(ClientBL, tk.Frame):
         # First, used for manage_buttons()
         self.first = True
 
+        self.listen_thread = None
+
+        # Configure started flag
+        self._started: bool = False
+
         # Manage buttons
         self._manage_buttons()
-
-        self.listen_thread = None
 
     def on_click_start_gui(self):
         self._started = True
@@ -227,6 +249,9 @@ class SignupFrame(ClientBL, tk.Frame):
 
         # Send JSON to server
         self.send_data(json_data)
+
+    def on_click_back_gui(self):
+        cast(ClientApp, self.master).show_frame(StartFrame)
 
     def _manage_buttons(self):
         # GUI buttons should reflect the current status of the app
@@ -261,9 +286,9 @@ class SignupFrame(ClientBL, tk.Frame):
 
 class MainFrame(ClientBL, tk.Frame):
     def __init__(self, socket):
+        # Constructors
+        ClientBL.__init__(self)
         tk.Frame.__init__(self)
-        self.socket = socket
-        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.socket)}") # Compare this ID with ID in other frames
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -272,9 +297,14 @@ class MainFrame(ClientBL, tk.Frame):
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
+        self.socket = socket
+
         # Create and place stop button
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._stop_button.place(x=protocol.buttons_x, y=230)
+
+        # Configure started flag
+        self._started: bool = False
 
     def on_click_stop_gui(self):
         self._stop_button.config(state=tk.DISABLED)
@@ -284,6 +314,14 @@ class MainFrame(ClientBL, tk.Frame):
 class ClientApp(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        # Show background image
+        bg_image = Image.open(protocol.bg_path)
+        bg_reimage = bg_image.resize((protocol.width, protocol.height))
+        self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
+        self.bg_label = tk.Label(self, image=self.bg_pimage)
+        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
         # All these should be done here and not in frames
         self.title("Currency Converter - Start Page")
         self.geometry(f"{protocol.width}x{protocol.height}")
@@ -299,6 +337,7 @@ class ClientApp(tk.Tk):
                 socket = bl.socket
                 bl.destroy()
                 self._current_frame = frame(socket)
+                protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(socket)}") # Compare ID with ID in other frames
             else:
                 bl = self._current_frame
                 bl.destroy()
