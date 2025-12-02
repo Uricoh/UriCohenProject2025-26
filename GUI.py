@@ -7,7 +7,6 @@ from PIL import Image, ImageTk
 # Should NEVER be inherited by frames
 class GUI:
     def __init__(self):
-        super().__init__()
         self._root = tk.Tk()
         self._root.title("Currency Converter - Start Page")
         self._root.geometry(f"{protocol.width}x{protocol.height}")
