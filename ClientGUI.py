@@ -9,11 +9,11 @@ from PIL import Image, ImageTk
 from typing import cast
 
 
-class StartFrame(ClientBL, tk.Frame):
-    def __init__(self, socket=None):
+class StartFrame(tk.Frame):
+    def __init__(self, client_bl):
         # Constructors
-        ClientBL.__init__(self)
-        tk.Frame.__init__(self)
+        super().__init__()
+        self.client_bl = client_bl
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -21,8 +21,6 @@ class StartFrame(ClientBL, tk.Frame):
         self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-
-        self.socket = socket
 
         # Create buttons
         self._signup_button = tk.Button(self, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
@@ -42,14 +40,11 @@ class StartFrame(ClientBL, tk.Frame):
         cast(ClientApp, self.master).show_frame(LoginFrame)
 
 
-class LoginFrame(ClientBL, tk.Frame):
-    def __init__(self, socket=None):
+class LoginFrame(tk.Frame):
+    def __init__(self, client_bl):
         # Constructors
-        ClientBL.__init__(self)
-        tk.Frame.__init__(self)
-
-        if socket is not None:
-            self.socket = socket
+        super().__init__()
+        self.client_bl = client_bl
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -89,9 +84,6 @@ class LoginFrame(ClientBL, tk.Frame):
         # First, used for manage_buttons()
         self.first = True
 
-        # Configure started flag
-        self._started: bool = False
-
         # Manage buttons
         self._manage_buttons()
 
@@ -100,7 +92,7 @@ class LoginFrame(ClientBL, tk.Frame):
 
     def _manage_buttons(self):
         # GUI buttons should reflect the current status of the app
-        if self._started:
+        if self.client_bl.socket is not None and self.client_bl.socket_is_active():
             self._start_button.config(state=tk.DISABLED)
             self._stop_button.config(state=tk.NORMAL)
             self._login_button.config(state=tk.NORMAL)
@@ -117,17 +109,15 @@ class LoginFrame(ClientBL, tk.Frame):
             protocol.logger.info("[CLIENTGUI] - Buttons reversed")
 
     def on_click_start_gui(self):
-        self._started = True
+        self.client_bl.on_click_start()
         self._manage_buttons()
-        self.on_click_start()
-        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.socket)}") # Compare this ID with ID in other frames
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
         self.listen_thread = threading.Thread(target=self.listen, daemon=True)
         self.listen_thread.start()
 
     def on_click_stop_gui(self):
-        self._started = False
+        self.client_bl.on_click_stop()
         self._manage_buttons()
-        self.on_click_stop()
 
     def on_click_login_gui(self):
         # Get username and password
@@ -142,7 +132,7 @@ class LoginFrame(ClientBL, tk.Frame):
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
         # Send JSON to server
-        self.send_data(json_data)
+        self.client_bl.send_data(json_data)
 
     def on_click_back_gui(self):
         cast(ClientApp, self.master).show_frame(StartFrame)
@@ -150,7 +140,7 @@ class LoginFrame(ClientBL, tk.Frame):
     def listen(self):
         while True:
             try:
-                data = self.socket.recv(1024).decode('utf-8')
+                data = self.client_bl.socket.recv(1024).decode('utf-8')
                 # If user logs in or signs up, redirect to main frame
                 # Cast exists so IDE (PyCharm) won't needlessly warn "wrong type"
                 if data == "LOGIN":
@@ -160,14 +150,11 @@ class LoginFrame(ClientBL, tk.Frame):
                 break
 
 
-class SignupFrame(ClientBL, tk.Frame):
-    def __init__(self, socket=None):
+class SignupFrame(tk.Frame):
+    def __init__(self, client_bl):
         # Constructors
-        ClientBL.__init__(self)
-        tk.Frame.__init__(self)
-
-        if socket is not None:
-            self.socket = socket
+        super().__init__()
+        self.client_bl = client_bl
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -214,24 +201,19 @@ class SignupFrame(ClientBL, tk.Frame):
 
         self.listen_thread = None
 
-        # Configure started flag
-        self._started: bool = False
-
         # Manage buttons
         self._manage_buttons()
 
     def on_click_start_gui(self):
-        self._started = True
+        self.client_bl.on_click_start()
         self._manage_buttons()
-        self.on_click_start()
-        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.socket)}") # Compare this ID with ID in other frames
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
         self.listen_thread = threading.Thread(target=self.listen, daemon=True)
         self.listen_thread.start()
 
     def on_click_stop_gui(self):
-        self._started = False
+        self.client_bl.on_click_stop()
         self._manage_buttons()
-        self.on_click_stop()
 
     def on_click_signup_gui(self):
         # Get username and password
@@ -248,14 +230,14 @@ class SignupFrame(ClientBL, tk.Frame):
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
         # Send JSON to server
-        self.send_data(json_data)
+        self.client_bl.send_data(json_data)
 
     def on_click_back_gui(self):
         cast(ClientApp, self.master).show_frame(StartFrame)
 
     def _manage_buttons(self):
         # GUI buttons should reflect the current status of the app
-        if self._started:
+        if self.client_bl.socket is not None:
             self._start_button.config(state=tk.DISABLED)
             self._stop_button.config(state=tk.NORMAL)
             self._signup_button.config(state=tk.NORMAL)
@@ -274,7 +256,7 @@ class SignupFrame(ClientBL, tk.Frame):
     def listen(self):
         while True:
             try:
-                data = self.socket.recv(1024).decode('utf-8')
+                data = self.client_bl.socket.recv(1024).decode('utf-8')
                 # If user logs in or signs up, redirect to main frame
                 # Cast exists so IDE (PyCharm) won't needlessly warn "wrong type"
                 if data == "SIGNUP":
@@ -284,11 +266,11 @@ class SignupFrame(ClientBL, tk.Frame):
                 break
 
 
-class MainFrame(ClientBL, tk.Frame):
-    def __init__(self, socket):
+class MainFrame(tk.Frame):
+    def __init__(self, client_bl):
         # Constructors
-        ClientBL.__init__(self)
-        tk.Frame.__init__(self)
+        super().__init__()
+        self.client_bl = client_bl
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -297,23 +279,30 @@ class MainFrame(ClientBL, tk.Frame):
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        self.socket = socket
-
         # Create and place stop button
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._stop_button.place(x=protocol.buttons_x, y=230)
+
+        # Create and place back button
+        self._back_button = tk.Button(self, text="Back", font=protocol.font, command=self.on_click_back_gui)
+        self._back_button.place(x=protocol.buttons_x, y=380)
 
         # Configure started flag
         self._started: bool = False
 
     def on_click_stop_gui(self):
         self._stop_button.config(state=tk.DISABLED)
-        ClientBL.on_click_stop(self)
+        self.client_bl.on_click_stop()
+
+    def on_click_back_gui(self):
+        cast(ClientApp, self.master).show_frame(StartFrame)
 
 
 class ClientApp(tk.Tk):
-    def __init__(self):
+    def __init__(self, client_bl):
+        # Constructors
         super().__init__()
+        self.client_bl = client_bl
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -331,24 +320,21 @@ class ClientApp(tk.Tk):
 
     def show_frame(self, frame):
         # Show a new frame
-        if self._current_frame is not None: # No need to check socket or destroy BL if there's no previous frame
-            if self._current_frame.socket is not None: # No need to transfer socket if one doesn't exist
-                bl = self._current_frame
-                socket = bl.socket
-                bl.destroy()
-                self._current_frame = frame(socket)
-                protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(socket)}") # Compare ID with ID in other frames
-            else:
-                bl = self._current_frame
-                bl.destroy()
-                self._current_frame = frame()
+        if self._current_frame is not None: # If previous frame exists, transfer its client_bl
+            protocol.logger.info(f"[CLIENTGUI] - Old BL ID: {id(self._current_frame.client_bl)}")
+            protocol.logger.info(f"[CLIENTGUI] - Old socket ID: {id(self._current_frame.client_bl.socket)}")
+
+            self._current_frame = frame(self._current_frame.client_bl)
+            protocol.logger.info(f"[CLIENTGUI] - New BL ID: {id(self._current_frame.client_bl)}")
+            protocol.logger.info(f"[CLIENTGUI] - New socket ID: {id(self._current_frame.client_bl.socket)}")
         else:
-            self._current_frame = frame()
+            self._current_frame = frame(self.client_bl)
         protocol.logger.info(f"[CLIENTGUI] - {self._current_frame.__class__.__name__} shown")
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
 
 if __name__ == "__main__":
     # Run client
-    app: ClientApp = ClientApp()
+    start_client_bl: ClientBL = ClientBL()
+    app: ClientApp = ClientApp(start_client_bl)
     app.mainloop()
