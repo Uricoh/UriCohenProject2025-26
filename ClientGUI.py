@@ -23,8 +23,10 @@ class StartFrame(tk.Frame):
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Create buttons
-        self._signup_button = tk.Button(self, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
-        self._login_button = tk.Button(self, text="Log in", font=protocol.font, command=self.on_click_login_gui)
+        self._signup_button = tk.Button(self, text="Sign up", font=protocol.font,
+                                        command=lambda:cast(ClientApp, self.master).show_frame(SignupFrame))
+        self._login_button = tk.Button(self, text="Log in", font=protocol.font,
+                                       command=lambda:cast(ClientApp, self.master).show_frame(LoginFrame))
 
         # Place buttons
         self._signup_button.place(x=protocol.buttons_x, y=80)
@@ -32,12 +34,6 @@ class StartFrame(tk.Frame):
 
         # Configure started flag
         self._started: bool = False
-
-    def on_click_signup_gui(self):
-        cast(ClientApp, self.master).show_frame(SignupFrame)
-
-    def on_click_login_gui(self):
-        cast(ClientApp, self.master).show_frame(LoginFrame)
 
 
 class LoginFrame(tk.Frame):
@@ -65,7 +61,14 @@ class LoginFrame(tk.Frame):
         self._start_button = tk.Button(self, text="Start", font=protocol.font, command=self.on_click_start_gui)
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._login_button = tk.Button(self, text="Log in", font=protocol.font, command=self.on_click_login_gui)
-        self._back_button = tk.Button(self, text="Back", font=protocol.font, command=self.on_click_back_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.font,
+                                      command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
+
+        # Configure buttons
+        if protocol.socket_exists_and_active(self.client_bl.socket):
+            protocol.reverse_button(self._start_button)
+        else:
+            protocol.reverse_many_buttons((self._stop_button, self._login_button))
 
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
@@ -81,43 +84,22 @@ class LoginFrame(tk.Frame):
         self._username = None
         self._password = None
 
-        # First, used for manage_buttons()
-        self.first = True
-
-        # Manage buttons
-        self._manage_buttons()
+        # Log socket ID if one exists
+        if protocol.socket_exists_and_active(self.client_bl.socket):
+            protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
 
         # Will only start when start button is clicked
         self.listen_thread = None
 
-    def _manage_buttons(self):
-        # GUI buttons should reflect the current status of the app
-        if self.client_bl.socket is not None and self.client_bl.socket_is_active():
-            self._start_button.config(state=tk.DISABLED)
-            self._stop_button.config(state=tk.NORMAL)
-            self._login_button.config(state=tk.NORMAL)
-        else:
-            self._start_button.config(state=tk.NORMAL)
-            self._stop_button.config(state=tk.DISABLED)
-            self._login_button.config(state=tk.DISABLED)
-
-        # Log that buttons were reversed only if it's not the first time that function is called, and
-        # therefore they were
-        if self.first:
-            self.first = False
-        else:
-            protocol.logger.info("[CLIENTGUI] - Buttons reversed")
-
     def on_click_start_gui(self):
         self.client_bl.on_click_start()
-        self._manage_buttons()
+        cast(ClientApp, self.master).start_listening()
+        protocol.reverse_many_buttons((self._start_button, self._stop_button, self._login_button))
         protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
-        self.listen_thread = threading.Thread(target=self.listen, daemon=True)
-        self.listen_thread.start()
 
     def on_click_stop_gui(self):
         self.client_bl.on_click_stop()
-        self._manage_buttons()
+        protocol.reverse_many_buttons((self._start_button, self._stop_button, self._login_button))
 
     def on_click_login_gui(self):
         # Get username and password
@@ -133,21 +115,6 @@ class LoginFrame(tk.Frame):
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
-
-    def on_click_back_gui(self):
-        cast(ClientApp, self.master).show_frame(StartFrame)
-
-    def listen(self):
-        while True:
-            try:
-                data = self.client_bl.socket.recv(1024).decode('utf-8')
-                # If user logs in or signs up, redirect to main frame
-                # Cast exists so IDE (PyCharm) won't needlessly warn "wrong type"
-                if data == "LOGIN":
-                    cast(ClientApp, self.master).show_frame(MainFrame)
-            except OSError:
-                # Exists to ignore the exception shown when the client is stopped but socket.recv() is still active
-                break
 
 
 class SignupFrame(tk.Frame):
@@ -177,7 +144,14 @@ class SignupFrame(tk.Frame):
         self._start_button = tk.Button(self, text="Start", font=protocol.font, command=self.on_click_start_gui)
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._signup_button = tk.Button(self, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
-        self._back_button = tk.Button(self, text="Back", font=protocol.font, command=self.on_click_back_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.font,
+                                      command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
+
+        # Adjust buttons
+        if protocol.socket_exists_and_active(self.client_bl.socket):
+            protocol.reverse_button(self._start_button)
+        else:
+            protocol.reverse_many_buttons((self._stop_button, self._signup_button))
 
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
@@ -196,24 +170,15 @@ class SignupFrame(tk.Frame):
         self._password = None
         self._email = None
 
-        # First, used for manage_buttons()
-        self.first = True
-
-        self.listen_thread = None
-
-        # Manage buttons
-        self._manage_buttons()
-
     def on_click_start_gui(self):
         self.client_bl.on_click_start()
-        self._manage_buttons()
+        cast(ClientApp, self.master).start_listening()
+        protocol.reverse_many_buttons((self._start_button, self._stop_button, self._signup_button))
         protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
-        self.listen_thread = threading.Thread(target=self.listen, daemon=True)
-        self.listen_thread.start()
 
     def on_click_stop_gui(self):
         self.client_bl.on_click_stop()
-        self._manage_buttons()
+        protocol.reverse_many_buttons((self._start_button, self._stop_button, self._signup_button))
 
     def on_click_signup_gui(self):
         # Get username and password
@@ -231,39 +196,6 @@ class SignupFrame(tk.Frame):
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
-
-    def on_click_back_gui(self):
-        cast(ClientApp, self.master).show_frame(StartFrame)
-
-    def _manage_buttons(self):
-        # GUI buttons should reflect the current status of the app
-        if self.client_bl.socket is not None:
-            self._start_button.config(state=tk.DISABLED)
-            self._stop_button.config(state=tk.NORMAL)
-            self._signup_button.config(state=tk.NORMAL)
-        else:
-            self._start_button.config(state=tk.NORMAL)
-            self._stop_button.config(state=tk.DISABLED)
-            self._signup_button.config(state=tk.DISABLED)
-
-        # Log that buttons were reversed only if it's not the first time that function is called, and
-        # therefore they were
-        if self.first:
-            self.first = False
-        else:
-            protocol.logger.info("[CLIENTGUI] - Buttons reversed")
-
-    def listen(self):
-        while True:
-            try:
-                data = self.client_bl.socket.recv(1024).decode('utf-8')
-                # If user logs in or signs up, redirect to main frame
-                # Cast exists so IDE (PyCharm) won't needlessly warn "wrong type"
-                if data == "SIGNUP":
-                    cast(ClientApp, self.master).show_frame(MainFrame)
-            except OSError:
-                # Exists to ignore the exception shown when the client is stopped but socket.recv() is still active
-                break
 
 
 class MainFrame(tk.Frame):
@@ -284,18 +216,16 @@ class MainFrame(tk.Frame):
         self._stop_button.place(x=protocol.buttons_x, y=230)
 
         # Create and place back button
-        self._back_button = tk.Button(self, text="Back", font=protocol.font, command=self.on_click_back_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.font,
+                                      command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
         self._back_button.place(x=protocol.buttons_x, y=380)
 
         # Configure started flag
         self._started: bool = False
 
     def on_click_stop_gui(self):
-        self._stop_button.config(state=tk.DISABLED)
+        protocol.reverse_button(self._stop_button)
         self.client_bl.on_click_stop()
-
-    def on_click_back_gui(self):
-        cast(ClientApp, self.master).show_frame(StartFrame)
 
 
 class ClientApp(tk.Tk):
@@ -303,6 +233,13 @@ class ClientApp(tk.Tk):
         # Constructors
         super().__init__()
         self.client_bl = client_bl
+
+        # Listening flag is used on start_listening() to check if the app is already listening,
+        # with client socket created elsewhere on ClientGUI
+        self.listening = False
+
+        # Create thread
+        self.listen_thread = None
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -316,19 +253,28 @@ class ClientApp(tk.Tk):
         self.geometry(f"{protocol.width}x{protocol.height}")
         self._current_frame = None
         self.show_frame(StartFrame)
-        cast(tk.Frame, self._current_frame).place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    def start_listening(self):
+        # If the app already listens, no need to listen again
+        if not self.listening:
+            threading.Thread(target=self.listen, daemon=True).start()
+            self.listening = True
+
+    def listen(self):
+        try:
+            while protocol.socket_exists_and_active(self.client_bl.socket):
+                data = self.client_bl.socket.recv(1024).decode(protocol.json_format)
+                if data == "LOGIN" or data == "SIGNUP":
+                    self.show_frame(MainFrame)
+        except protocol.errors:
+            # Exists to revert listening flag and to ignore errors that show up when the client socket closes
+            self.listening = False
+            pass
 
     def show_frame(self, frame):
-        # Show a new frame
-        if self._current_frame is not None: # If previous frame exists, transfer its client_bl
-            protocol.logger.info(f"[CLIENTGUI] - Old BL ID: {id(self._current_frame.client_bl)}")
-            protocol.logger.info(f"[CLIENTGUI] - Old socket ID: {id(self._current_frame.client_bl.socket)}")
-
-            self._current_frame = frame(self._current_frame.client_bl)
-            protocol.logger.info(f"[CLIENTGUI] - New BL ID: {id(self._current_frame.client_bl)}")
-            protocol.logger.info(f"[CLIENTGUI] - New socket ID: {id(self._current_frame.client_bl.socket)}")
-        else:
-            self._current_frame = frame(self.client_bl)
+        if self._current_frame is not None:
+            self._current_frame.destroy()
+        self._current_frame = frame(self.client_bl) # Frame() calls the constructor of any frame (frame class)
         protocol.logger.info(f"[CLIENTGUI] - {self._current_frame.__class__.__name__} shown")
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
