@@ -20,13 +20,6 @@ class ClientBL:
         self.socket.close()
         protocol.logger.info("[CLIENTBL] - Client socket closed")
 
-    def socket_is_active(self) -> bool:
-        try:
-            self.socket.sendall(b'')
-            return True
-        except(BrokenPipeError, ConnectionResetError, OSError):
-            return False
-
     def send_data(self, data):
-        self.socket.sendall(data.encode('utf-8'))
+        self.socket.sendall(data.encode(protocol.json_format))
         protocol.logger.info("[CLIENTBL] - Data sent to server")

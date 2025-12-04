@@ -1,6 +1,7 @@
 import datetime
 import logging
 from pathlib import Path
+import tkinter as tk
 
 
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
@@ -16,10 +17,12 @@ font: tuple = ('Arial', 32)
 text_width: int = 20
 labels_x: int = 50 # Left
 buttons_x: int = 1000 # Right
+json_format: str = 'utf-8'
+errors: tuple = (BrokenPipeError, ConnectionResetError, OSError)
 bg_path: str = "background.jpg"
 log_path: str = "log.log"
 db_name: str = "database.db"
-user_tbl: str = "USERTBL" # Name is user_tbl because there may be more tables
+user_tbl: str = "USERTBL" # Variable name is user_tbl because there may be more tables
 
 
 def get_time_as_text() -> str:
@@ -28,6 +31,28 @@ def get_time_as_text() -> str:
     # .%f responsible for microseconds, all the way up to %Y for the year
     formatted_datetime_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
     return formatted_datetime_string
+
+def reverse_button(button: tk.Button) -> None:
+    if button['state'] == tk.NORMAL:
+        button['state'] = tk.DISABLED
+    else:
+        button['state'] = tk.NORMAL
+
+def reverse_many_buttons(buttons: tuple) -> None:
+    for button in buttons:
+        reverse_button(button)
+
+# Check whether a socket still exists and active, and so can be contacted
+def socket_exists_and_active(my_socket) -> bool:
+    if my_socket is None:
+        return False
+    else:
+        try:
+            my_socket.getpeername() # We don't actually need the peer name (other side-socket's name),
+                                    # it will just throw an exception if the checked socket is closed
+            return True
+        except errors:
+            return False
 
 
 # Commands that should be executed at the start of each program

@@ -21,9 +21,8 @@ class ServerBL:
         protocol.logger.info("[SERVERBL] - Socket bound")
         self._socket.listen(5)
         protocol.logger.info("[SERVERBL] - Socket listening")
-        accept_thread = threading.Thread(target=self.accept, daemon=True)
+        accept_thread = threading.Thread(target=self.accept, daemon=True).start()
         protocol.logger.info("[SERVERBL] - Accept thread started")
-        accept_thread.start()
 
     def accept(self):
         # This runs in Thread A, not in main thread
@@ -32,23 +31,18 @@ class ServerBL:
                 (client_socket, client_address) = self._socket.accept()
                 self.create_accept_thread(client_socket)
                 protocol.logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
-            finally:
-                # Ignore errors
-                break
+            except OSError:
+                pass
+
 
     def create_accept_thread(self, client_socket):
-        # This, create_client_handler, and ClientHandler run in Thread B, C...
-        # (one thread per client), not in main thread
-        self._client_handler_thread_list.append(threading.Thread(target=self.create_client_handler, daemon=True,
-                                                                 args=[client_socket]))
-        self._client_handler_thread_list[-1].start()
+        self.create_client_handler(client_socket)
         protocol.logger.info(f"[SERVERBL] - ClientHandler created")
 
     def create_client_handler(self, client_socket):
-        # This, create_accept_thread, and ClientHandler run in Thread B, C...
-        # (one thread per client), not in main thread
         client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket)
         self._client_handler_list.append(client_handler)
+        threading.Thread(target=client_handler.receive, daemon=True).start()
 
     def on_click_stop(self):
         protocol.logger.info("[SERVERBL] - Stop button clicked")
