@@ -32,8 +32,10 @@ class StartFrame(tk.Frame):
         self._signup_button.place(x=protocol.buttons_x, y=80)
         self._login_button.place(x=protocol.buttons_x, y=230)
 
-        # Configure started flag
-        self._started: bool = False
+        # Log socket ID if one exists
+        if protocol.socket_exists_and_active(self.client_bl.socket):
+            protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
+            # Compare this ID with ID in other frames
 
 
 class LoginFrame(tk.Frame):
@@ -80,36 +82,28 @@ class LoginFrame(tk.Frame):
         self._login_button.place(x=protocol.buttons_x, y=380)
         self._back_button.place(x=protocol.buttons_x, y=530)
 
-        # Create username, password and email
-        self._username = None
-        self._password = None
-
         # Log socket ID if one exists
         if protocol.socket_exists_and_active(self.client_bl.socket):
-            protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
-
-        # Will only start when start button is clicked
-        self.listen_thread = None
+            protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
+            # Compare this ID with ID in other frames
 
     def on_click_start_gui(self):
         self.client_bl.on_click_start()
         cast(ClientApp, self.master).start_listening()
         protocol.reverse_many_buttons((self._start_button, self._stop_button, self._login_button))
-        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
+        # Compare this ID with ID in other frames
 
     def on_click_stop_gui(self):
         self.client_bl.on_click_stop()
         protocol.reverse_many_buttons((self._start_button, self._stop_button, self._login_button))
 
     def on_click_login_gui(self):
-        # Get username and password
-        self._username = self._username_text.get()
-        self._password = self._password_text.get()
-        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username}")
-        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password}")
+        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
 
         # Make JSON
-        user_data = ("LOGIN", self._username, self._password)
+        user_data = ("LOGIN", self._username_text.get(), self._password_text.get())
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
@@ -165,10 +159,10 @@ class SignupFrame(tk.Frame):
         self._signup_button.place(x=protocol.buttons_x, y=380)
         self._back_button.place(x=protocol.buttons_x, y=530)
 
-        # Create username, password and email
-        self._username = None
-        self._password = None
-        self._email = None
+        # Log socket ID if one exists
+        if protocol.socket_exists_and_active(self.client_bl.socket):
+            protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
+            # Compare this ID with ID in other frames
 
     def on_click_start_gui(self):
         self.client_bl.on_click_start()
@@ -181,16 +175,12 @@ class SignupFrame(tk.Frame):
         protocol.reverse_many_buttons((self._start_button, self._stop_button, self._signup_button))
 
     def on_click_signup_gui(self):
-        # Get username and password
-        self._username = self._username_text.get()
-        self._password = self._password_text.get()
-        self._email = self._email_text.get()
-        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username}")
-        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password}")
-        protocol.logger.info(f"[CLIENTGUI] - Email: {self._email}")
+        protocol.logger.info(f"[CLIENTGUI] - Username: {self._username_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Email: {self._email_text.get()}")
 
         # Make JSON
-        user_data = ("SIGNUP", self._username, self._password, self._email)
+        user_data = ("SIGNUP", self._username_text.get(), self._password_text.get(), self._email_text.get())
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
@@ -220,8 +210,10 @@ class MainFrame(tk.Frame):
                                       command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
         self._back_button.place(x=protocol.buttons_x, y=380)
 
-        # Configure started flag
-        self._started: bool = False
+        # Log socket ID if one exists
+        if protocol.socket_exists_and_active(self.client_bl.socket):
+            protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
+            # Compare this ID with ID in other frames
 
     def on_click_stop_gui(self):
         protocol.reverse_button(self._stop_button)
@@ -237,9 +229,6 @@ class ClientApp(tk.Tk):
         # Listening flag is used on start_listening() to check if the app is already listening,
         # with client socket created elsewhere on ClientGUI
         self.listening = False
-
-        # Create thread
-        self.listen_thread = None
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -269,13 +258,12 @@ class ClientApp(tk.Tk):
         except protocol.errors:
             # Exists to revert listening flag and to ignore errors that show up when the client socket closes
             self.listening = False
-            pass
 
     def show_frame(self, frame):
         if self._current_frame is not None:
             self._current_frame.destroy()
+        protocol.logger.info(f"[CLIENTGUI] - {self._current_frame.__class__.__name__} to show")
         self._current_frame = frame(self.client_bl) # Frame() calls the constructor of any frame (frame class)
-        protocol.logger.info(f"[CLIENTGUI] - {self._current_frame.__class__.__name__} shown")
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
 

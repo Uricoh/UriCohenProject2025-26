@@ -18,8 +18,5 @@ class GUI:
         self.bg_label = tk.Label(self._root, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        # Configure started flag
-        self._started: bool = False
-
     def run(self):
         self._root.mainloop()

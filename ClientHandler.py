@@ -8,6 +8,7 @@ class ClientHandler:
         self._client_socket = _client_socket
 
     def receive(self):
+        # This method runs in a special thread, unique for each client, created by Thread A on ServerBL
         try:
             while True:
                 data = self._client_socket.recv(1024).decode(protocol.json_format)
@@ -41,6 +42,6 @@ class ClientHandler:
                     protocol.logger.info("[CLIENTHANDLER] - Client disconnected")
                     self._client_socket.close()
                     break
-        except (OSError, ConnectionResetError):
+        except protocol.errors:
             # Exists to ignore the exception shown when the client is stopped but socket.recv() is still active
             pass
