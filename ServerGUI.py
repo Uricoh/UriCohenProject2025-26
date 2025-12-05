@@ -20,12 +20,10 @@ class ServerGUI(GUI, ServerBL):
 
 
     def on_click_start_gui(self):
-        self._started = True
         protocol.reverse_many_buttons((self._start_button, self._stop_button))
         self.on_click_start()
 
     def on_click_stop_gui(self):
-        self._started = False
         protocol.reverse_many_buttons((self._start_button, self._stop_button))
         self.on_click_stop()
 

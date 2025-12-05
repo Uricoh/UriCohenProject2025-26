@@ -10,7 +10,7 @@ class ServerBL:
         self._socket = None
         # These properties may be used in the future, if not please delete
         self._client_handler_list = []
-        self._client_handler_thread_list = []
+        self._client_thread_list = []
 
     def on_click_start(self):
         # BLA - bind, listen, accept
@@ -21,7 +21,7 @@ class ServerBL:
         protocol.logger.info("[SERVERBL] - Socket bound")
         self._socket.listen(5)
         protocol.logger.info("[SERVERBL] - Socket listening")
-        accept_thread = threading.Thread(target=self.accept, daemon=True).start()
+        threading.Thread(target=self.accept, daemon=True).start()
         protocol.logger.info("[SERVERBL] - Accept thread started")
 
     def accept(self):
@@ -29,20 +29,14 @@ class ServerBL:
         while True:
             try:
                 (client_socket, client_address) = self._socket.accept()
-                self.create_accept_thread(client_socket)
+                client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket)
+                self._client_handler_list.append(client_handler)
+                client_thread = threading.Thread(target=client_handler.receive, daemon=True).start()
+                self._client_thread_list.append(client_thread)
+                protocol.logger.info(f"[SERVERBL] - ClientHandler created")
                 protocol.logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
-            except OSError:
+            except protocol.errors:
                 pass
-
-
-    def create_accept_thread(self, client_socket):
-        self.create_client_handler(client_socket)
-        protocol.logger.info(f"[SERVERBL] - ClientHandler created")
-
-    def create_client_handler(self, client_socket):
-        client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket)
-        self._client_handler_list.append(client_handler)
-        threading.Thread(target=client_handler.receive, daemon=True).start()
 
     def on_click_stop(self):
         protocol.logger.info("[SERVERBL] - Stop button clicked")
