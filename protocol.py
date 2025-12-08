@@ -1,8 +1,8 @@
-import datetime
+from datetime import datetime
 import logging
 from pathlib import Path
 import tkinter as tk
-import hashlib
+from hashlib import sha256
 
 
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
@@ -28,7 +28,7 @@ user_tbl: str = "USERTBL" # Variable name is user_tbl because there may be more 
 
 def get_time_as_text() -> str:
     # Gets timestamp as string down to the microsecond
-    current_datetime = datetime.datetime.now()
+    current_datetime = datetime.now()
     # .%f responsible for microseconds, all the way up to %Y for the year
     formatted_datetime_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
     return formatted_datetime_string
@@ -44,6 +44,7 @@ def reverse_many_buttons(buttons: tuple) -> None:
         reverse_button(button)
 
 # Check whether a socket still exists and active, and so can be contacted
+# Don't add "my_socket: socket" because then we have to import module 'socket'
 def socket_exists_and_active(my_socket) -> bool:
     if my_socket is None:
         return False
@@ -55,9 +56,9 @@ def socket_exists_and_active(my_socket) -> bool:
         except errors:
             return False
 
-def hash_password(password: str) -> str:
+def get_hash(password: str) -> str:
     encoded_password = password.encode(json_format)
-    password_hash = hashlib.sha256(encoded_password).hexdigest()
+    password_hash = sha256(encoded_password).hexdigest()
     return password_hash
 
 
