@@ -103,7 +103,7 @@ class LoginFrame(tk.Frame):
         protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
 
         # Make JSON
-        user_data = ("LOGIN", self._username_text.get(), protocol.hash_password(self._password_text.get()))
+        user_data = ("LOGIN", self._username_text.get(), protocol.get_hash(self._password_text.get()))
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
@@ -181,7 +181,7 @@ class SignupFrame(tk.Frame):
         protocol.logger.info(f"[CLIENTGUI] - Email: {self._email_text.get()}")
 
         # Make JSON
-        user_data = ("SIGNUP", self._username_text.get(), protocol.hash_password(self._password_text.get()),
+        user_data = ("SIGNUP", self._username_text.get(), protocol.get_hash(self._password_text.get()),
                      self._email_text.get())
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")

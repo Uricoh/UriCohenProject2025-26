@@ -1,7 +1,7 @@
 import protocol
 import threading
 import socket
-import ClientHandler
+from ClientHandler import ClientHandler
 import dbprotocol
 
 
@@ -29,7 +29,7 @@ class ServerBL:
         while True:
             try:
                 (client_socket, client_address) = self._socket.accept()
-                client_handler: ClientHandler = ClientHandler.ClientHandler(client_socket)
+                client_handler: ClientHandler = ClientHandler(client_socket)
                 self._client_handler_list.append(client_handler)
                 client_thread = threading.Thread(target=client_handler.receive, daemon=True).start()
                 self._client_thread_list.append(client_thread)
