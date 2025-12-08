@@ -2,6 +2,7 @@ import datetime
 import logging
 from pathlib import Path
 import tkinter as tk
+import hashlib
 
 
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
@@ -53,6 +54,11 @@ def socket_exists_and_active(my_socket) -> bool:
             return True
         except errors:
             return False
+
+def hash_password(password: str) -> str:
+    encoded_password = password.encode(json_format)
+    password_hash = hashlib.sha256(encoded_password).hexdigest()
+    return password_hash
 
 
 # Commands that should be executed at the start of each program
