@@ -103,7 +103,7 @@ class LoginFrame(tk.Frame):
         protocol.logger.info(f"[CLIENTGUI] - Password: {self._password_text.get()}")
 
         # Make JSON
-        user_data = ("LOGIN", self._username_text.get(), self._password_text.get())
+        user_data = ("LOGIN", self._username_text.get(), protocol.hash_password(self._password_text.get()))
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
@@ -168,7 +168,8 @@ class SignupFrame(tk.Frame):
         self.client_bl.on_click_start()
         cast(ClientApp, self.master).start_listening()
         protocol.reverse_many_buttons((self._start_button, self._stop_button, self._signup_button))
-        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}") # Compare this ID with ID in other frames
+        protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
+        # Compare this ID with ID in other frames
 
     def on_click_stop_gui(self):
         self.client_bl.on_click_stop()
@@ -180,7 +181,8 @@ class SignupFrame(tk.Frame):
         protocol.logger.info(f"[CLIENTGUI] - Email: {self._email_text.get()}")
 
         # Make JSON
-        user_data = ("SIGNUP", self._username_text.get(), self._password_text.get(), self._email_text.get())
+        user_data = ("SIGNUP", self._username_text.get(), protocol.hash_password(self._password_text.get()),
+                     self._email_text.get())
         json_data = json.dumps(user_data)
         protocol.logger.info("[CLIENTGUI] - JSON made")
 
@@ -251,7 +253,7 @@ class ClientApp(tk.Tk):
 
     def listen(self):
         try:
-            while protocol.socket_exists_and_active(self.client_bl.socket):
+            while True:
                 data = self.client_bl.socket.recv(1024).decode(protocol.json_format)
                 if data == "LOGIN" or data == "SIGNUP":
                     self.show_frame(MainFrame)
@@ -262,9 +264,9 @@ class ClientApp(tk.Tk):
     def show_frame(self, frame):
         if self._current_frame is not None:
             self._current_frame.destroy()
-        protocol.logger.info(f"[CLIENTGUI] - {self._current_frame.__class__.__name__} to show")
         self._current_frame = frame(self.client_bl) # Frame() calls the constructor of any frame (frame class)
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        protocol.logger.info(f"[CLIENTGUI] - {self._current_frame.__class__.__name__} to show")
 
 
 if __name__ == "__main__":

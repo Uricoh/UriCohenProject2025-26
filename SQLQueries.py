@@ -12,11 +12,21 @@ def update_emails():
         dbprotocol.cursor.execute(f"UPDATE {protocol.user_tbl} SET email = '{get_email_temp(user)}' WHERE id = {user}")
         dbprotocol.conn.commit()
 
-
 def un_update_emails():
     for user in range(1, dbprotocol.cursor.execute(f"SELECT COUNT(*) FROM {protocol.user_tbl}").fetchone()[0] + 1):
         dbprotocol.cursor.execute(f"UPDATE {protocol.user_tbl} SET email = 'null' WHERE id = {user}")
         dbprotocol.conn.commit()
 
+def set_password(id: int, password:str):
+    dbprotocol.cursor.execute(f'''UPDATE {protocol.user_tbl} SET password = '{protocol.hash_password(password)}'
+    WHERE id = {id}''')
+    dbprotocol.conn.commit()
+
+def see_entire_user_tbl():
+    rows = dbprotocol.cursor.execute("SELECT * FROM USERTBL").fetchall()
+    for row in rows:
+        print(row)
+
 
 update_emails()
+see_entire_user_tbl()
