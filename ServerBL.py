@@ -42,5 +42,6 @@ class ServerBL:
         protocol.logger.info("[SERVERBL] - Stop button clicked")
         # Close DB connection, only time when connection is closed and only use of import dbprotocol
         dbprotocol.conn.close()
+        protocol.logger.info("[SERVERBL] - DB connection closed")
         self._socket.close()
         protocol.logger.info("[SERVERBL] - Server closed")

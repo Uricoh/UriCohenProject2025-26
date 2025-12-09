@@ -11,9 +11,10 @@ from typing import cast
 
 class StartFrame(tk.Frame):
     def __init__(self, client_bl):
-        # Constructors
+        # Constructors and title
         super().__init__()
         self.client_bl = client_bl
+        cast(ClientApp, self.master).change_title("Currency Converter - Start Page")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -40,9 +41,10 @@ class StartFrame(tk.Frame):
 
 class LoginFrame(tk.Frame):
     def __init__(self, client_bl):
-        # Constructors
+        # Constructors and title
         super().__init__()
         self.client_bl = client_bl
+        cast(ClientApp, self.master).change_title("Currency Converter - Log in")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -113,9 +115,10 @@ class LoginFrame(tk.Frame):
 
 class SignupFrame(tk.Frame):
     def __init__(self, client_bl):
-        # Constructors
+        # Constructors and title
         super().__init__()
         self.client_bl = client_bl
+        cast(ClientApp, self.master).change_title("Currency Converter - Sign up")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -192,9 +195,10 @@ class SignupFrame(tk.Frame):
 
 class MainFrame(tk.Frame):
     def __init__(self, client_bl):
-        # Constructors
+        # Constructors and title
         super().__init__()
         self.client_bl = client_bl
+        cast(ClientApp, self.master).change_title("Currency Converter - Main Page")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -240,7 +244,6 @@ class ClientApp(tk.Tk):
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # All these should be done here and not in frames
-        self.title("Currency Converter - Start Page")
         self.geometry(f"{protocol.width}x{protocol.height}")
         self._current_frame = None
         self.show_frame(StartFrame)
@@ -260,6 +263,9 @@ class ClientApp(tk.Tk):
         except protocol.errors:
             # Exists to revert listening flag and to ignore errors that show up when the client socket closes
             self.listening = False
+
+    def change_title(self, title: str):
+        self.title(title)
 
     def show_frame(self, frame):
         if self._current_frame is not None:
