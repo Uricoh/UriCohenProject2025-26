@@ -14,7 +14,7 @@ class StartFrame(tk.Frame):
         # Constructors and title
         super().__init__()
         self.client_bl = client_bl
-        cast(ClientApp, self.master).change_title("Currency Converter - Start Page")
+        cast(ClientApp, self.master).title("Currency Converter - Start Page")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -34,7 +34,7 @@ class StartFrame(tk.Frame):
         self._login_button.place(x=protocol.buttons_x, y=230)
 
         # Log socket ID if one exists
-        if protocol.socket_exists_and_active(self.client_bl.socket):
+        if protocol.socket_alive(self.client_bl.socket):
             protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
             # Compare this ID with ID in other frames
 
@@ -44,7 +44,7 @@ class LoginFrame(tk.Frame):
         # Constructors and title
         super().__init__()
         self.client_bl = client_bl
-        cast(ClientApp, self.master).change_title("Currency Converter - Log in")
+        cast(ClientApp, self.master).title("Currency Converter - Log in")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -56,6 +56,7 @@ class LoginFrame(tk.Frame):
         # Create labels
         username_label = tk.Label(self, text="Username:", font=protocol.font)
         password_label = tk.Label(self, text="Password:", font=protocol.font)
+        self._fail_label = tk.Label(self, text="Username or password is incorrect", font=protocol.font, fg='red')
 
         # Create text fields
         self._username_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
@@ -69,7 +70,7 @@ class LoginFrame(tk.Frame):
                                       command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
 
         # Configure buttons
-        if protocol.socket_exists_and_active(self.client_bl.socket):
+        if protocol.socket_alive(self.client_bl.socket):
             protocol.reverse_button(self._start_button)
         else:
             protocol.reverse_many_buttons((self._stop_button, self._login_button))
@@ -77,6 +78,8 @@ class LoginFrame(tk.Frame):
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
         password_label.place(x=protocol.labels_x, y=220)
+        self.show_fail()
+        self.hide_fail()
         self._username_text.place(x=protocol.labels_x, y=80)
         self._password_text.place(x=protocol.labels_x, y=280)
         self._start_button.place(x=protocol.buttons_x, y=80)
@@ -85,7 +88,7 @@ class LoginFrame(tk.Frame):
         self._back_button.place(x=protocol.buttons_x, y=530)
 
         # Log socket ID if one exists
-        if protocol.socket_exists_and_active(self.client_bl.socket):
+        if protocol.socket_alive(self.client_bl.socket):
             protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
             # Compare this ID with ID in other frames
 
@@ -112,13 +115,19 @@ class LoginFrame(tk.Frame):
         # Send JSON to server
         self.client_bl.send_data(json_data)
 
+    def show_fail(self):
+        self._fail_label.place(x=protocol.labels_x, y=370)
+
+    def hide_fail(self):
+        self._fail_label.place_forget()
+
 
 class SignupFrame(tk.Frame):
     def __init__(self, client_bl):
         # Constructors and title
         super().__init__()
         self.client_bl = client_bl
-        cast(ClientApp, self.master).change_title("Currency Converter - Sign up")
+        cast(ClientApp, self.master).title("Currency Converter - Sign up")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -131,6 +140,7 @@ class SignupFrame(tk.Frame):
         username_label = tk.Label(self, text="Username:", font=protocol.font)
         password_label = tk.Label(self, text="Password:", font=protocol.font)
         email_label = tk.Label(self, text="Email:", font=protocol.font)
+        self._fail_label = tk.Label(self, text="Username already exists", font=protocol.font, fg='red')
 
         # Create text fields
         self._username_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
@@ -145,7 +155,7 @@ class SignupFrame(tk.Frame):
                                       command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
 
         # Adjust buttons
-        if protocol.socket_exists_and_active(self.client_bl.socket):
+        if protocol.socket_alive(self.client_bl.socket):
             protocol.reverse_button(self._start_button)
         else:
             protocol.reverse_many_buttons((self._stop_button, self._signup_button))
@@ -153,6 +163,8 @@ class SignupFrame(tk.Frame):
         # Place objects
         username_label.place(x=protocol.labels_x, y=20)
         password_label.place(x=protocol.labels_x, y=220)
+        self.show_fail()
+        self.hide_fail()
         email_label.place(x=protocol.labels_x, y=420)
         self._username_text.place(x=protocol.labels_x, y=80)
         self._password_text.place(x=protocol.labels_x, y=280)
@@ -163,7 +175,7 @@ class SignupFrame(tk.Frame):
         self._back_button.place(x=protocol.buttons_x, y=530)
 
         # Log socket ID if one exists
-        if protocol.socket_exists_and_active(self.client_bl.socket):
+        if protocol.socket_alive(self.client_bl.socket):
             protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
             # Compare this ID with ID in other frames
 
@@ -192,13 +204,19 @@ class SignupFrame(tk.Frame):
         # Send JSON to server
         self.client_bl.send_data(json_data)
 
+    def show_fail(self):
+        self._fail_label.place(x=protocol.labels_x, y=570)
+
+    def hide_fail(self):
+        self._fail_label.place_forget()
+
 
 class MainFrame(tk.Frame):
     def __init__(self, client_bl):
         # Constructors and title
         super().__init__()
         self.client_bl = client_bl
-        cast(ClientApp, self.master).change_title("Currency Converter - Main Page")
+        cast(ClientApp, self.master).title("Currency Converter - Main Page")
 
         # Show background image
         bg_image = Image.open(protocol.bg_path)
@@ -207,17 +225,25 @@ class MainFrame(tk.Frame):
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        # Create and place stop button
+        # Create objects
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
-        self._stop_button.place(x=protocol.buttons_x, y=230)
-
-        # Create and place back button
         self._back_button = tk.Button(self, text="Back", font=protocol.font,
                                       command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
+        self._convert_from = tk.Label(self, text="Convert from", font=protocol.font)
+        self._convert_to = tk.Label(self, text="To", font=protocol.font)
+        self.from_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
+        self.to_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
+
+        # Place objects
+        self._stop_button.place(x=protocol.buttons_x, y=230)
         self._back_button.place(x=protocol.buttons_x, y=380)
+        self._convert_from.place(x=protocol.labels_x, y=20)
+        self._convert_to.place(x=protocol.labels_x, y=220)
+        self.from_text.place(x=protocol.labels_x, y=80)
+        self.to_text.place(x=protocol.labels_x, y=280)
 
         # Log socket ID if one exists
-        if protocol.socket_exists_and_active(self.client_bl.socket):
+        if protocol.socket_alive(self.client_bl.socket):
             protocol.logger.info(f"[CLIENTGUI] - Socket ID: {id(self.client_bl.socket)}")
             # Compare this ID with ID in other frames
 
@@ -258,14 +284,22 @@ class ClientApp(tk.Tk):
         try:
             while True:
                 data = self.client_bl.socket.recv(1024).decode(protocol.json_format)
-                if data == "LOGIN" or data == "SIGNUP":
+                if data == "SIGNUP":
+                    protocol.logger.info("[CLIENTGUI] - Signup successful")
                     self.show_frame(MainFrame)
-        except protocol.errors:
+                elif data == "LOGIN":
+                    protocol.logger.info("[CLIENTGUI] - Login successful")
+                    self.show_frame(MainFrame)
+                elif data == "SIGNUPFAIL":
+                    protocol.logger.info("[CLIENTGUI] - Signup failed")
+                    self._current_frame.show_fail()
+                elif data == "LOGINFAIL":
+                    protocol.logger.info("[CLIENTGUI] - Login failed")
+                    self._current_frame.show_fail()
+
+        except OSError:
             # Exists to revert listening flag and to ignore errors that show up when the client socket closes
             self.listening = False
-
-    def change_title(self, title: str):
-        self.title(title)
 
     def show_frame(self, frame):
         if self._current_frame is not None:
@@ -277,6 +311,6 @@ class ClientApp(tk.Tk):
 
 if __name__ == "__main__":
     # Run client
-    start_client_bl: ClientBL = ClientBL()
-    app: ClientApp = ClientApp(start_client_bl)
+    client_bl: ClientBL = ClientBL()
+    app: ClientApp = ClientApp(client_bl)
     app.mainloop()

@@ -2,18 +2,14 @@
 import dbprotocol
 import protocol
 
-
-def get_email_temp(num: int) -> str:
-    return f"{num}@gmail.com"
-
 # WARNING: The following functions (update_() and un_update_emails()) will DELETE any actual emails from the database
 def update_emails():
-    for user in range(1, dbprotocol.cursor.execute(f"SELECT COUNT(*) FROM {protocol.user_tbl}").fetchone()[0] + 1):
-        dbprotocol.cursor.execute(f"UPDATE {protocol.user_tbl} SET email = '{get_email_temp(user)}' WHERE id = {user}")
+    for user in range(1, user_count):
+        dbprotocol.cursor.execute(f"UPDATE {protocol.user_tbl} SET email = '{f'{user}@gmail.com'}' WHERE id = {user}")
         dbprotocol.conn.commit()
 
 def un_update_emails():
-    for user in range(1, dbprotocol.cursor.execute(f"SELECT COUNT(*) FROM {protocol.user_tbl}").fetchone()[0] + 1):
+    for user in range(1, user_count):
         dbprotocol.cursor.execute(f"UPDATE {protocol.user_tbl} SET email = 'EXAMPLE' WHERE id = {user}")
         dbprotocol.conn.commit()
 
@@ -28,6 +24,7 @@ def see_entire_user_tbl():
         print(row)
 
 
+user_count: int = dbprotocol.cursor.execute(f"SELECT COUNT(*) FROM {protocol.user_tbl}").fetchone()[0] + 1
 update_emails()
 see_entire_user_tbl()
 dbprotocol.conn.close()

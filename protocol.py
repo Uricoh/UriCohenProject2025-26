@@ -21,9 +21,8 @@ text_width: int = 20
 labels_x: int = 50 # Left
 buttons_x: int = 1000 # Right
 json_format: str = 'utf-8'
-errors: tuple = (OSError, ConnectionResetError, BrokenPipeError)
 bg_path: str = "background.jpg"
-log_path: str = "log.log"
+_log_path: str = "log.log"
 db_name: str = "database.db"
 user_tbl: str = "USERTBL" # Variable name is user_tbl because there may be more tables in the future
 
@@ -45,10 +44,10 @@ def reverse_many_buttons(buttons: tuple) -> None:
     for button in buttons:
         reverse_button(button)
 
-# Check whether a socket still exists and active, and so can be contacted
+# Check whether a socket still exists and active - alive, and so can be contacted
 # Don't add "my_socket: socket" because then we have to import module 'socket'
 
-def socket_exists_and_active(my_socket) -> bool:
+def socket_alive(my_socket) -> bool:
     if my_socket is None:
         return False
     else:
@@ -57,7 +56,7 @@ def socket_exists_and_active(my_socket) -> bool:
             # We don't actually need the peer name (other side-socket's name),
             # it will just throw an exception if the checked socket is closed
             return True
-        except errors:
+        except OSError:
             return False
 
 def get_hash(password: str) -> str:
@@ -73,14 +72,14 @@ def get_hash(password: str) -> str:
 
 # Define clearer function
 def _clear_log():
-    _log_file = Path(log_path)
-    if _log_file.exists():
-        _log_file.write_text('') # Overwrites file with empty string
+    log_file = Path(_log_path)
+    if log_file.exists():
+        log_file.write_text('') # Overwrites file with empty string
 
 # Call clearer function
 _clear_log()
 
 # Create logger, one logger exists for the entire project, client and server
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=log_path)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=_log_path)
 logger = logging.getLogger(__name__)
 logger.info("[PROTOCOL] - Logger created")
