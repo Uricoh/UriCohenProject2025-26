@@ -35,7 +35,7 @@ class ServerBL:
                 self._client_thread_list.append(client_thread)
                 protocol.logger.info(f"[SERVERBL] - ClientHandler created")
                 protocol.logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
-            except protocol.errors:
+            except OSError:
                 pass
 
     def on_click_stop(self):
