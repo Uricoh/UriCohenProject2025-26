@@ -15,9 +15,10 @@ SERVER_IP: str = "127.0.0.1"
 width: int = 1500
 height: int = 750
 font_name: str = 'Arial'
-font_size: int = 32
+font_size: int = 32 # Best to make it a number that divides evenly by many other numbers
 font: tuple = (font_name, font_size)
-text_width: int = 20
+text_width: int = 20 # Best to make it a number that divides evenly by many other numbers
+currency_width: int = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
 labels_x: int = 50 # Left
 buttons_x: int = 1000 # Right
 json_format: str = 'utf-8'
@@ -46,7 +47,6 @@ def reverse_many_buttons(buttons: tuple) -> None:
 
 # Check whether a socket still exists and active - alive, and so can be contacted
 # Don't add "my_socket: socket" because then we have to import module 'socket'
-
 def socket_alive(my_socket) -> bool:
     if my_socket is None:
         return False

@@ -229,18 +229,27 @@ class MainFrame(tk.Frame):
         self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
         self._back_button = tk.Button(self, text="Back", font=protocol.font,
                                       command=lambda:cast(ClientApp, self.master).show_frame(StartFrame))
+        self._convert_button = tk.Button(self, text="Convert!", font=protocol.font, command=self.on_click_convert_gui)
         self._convert_from = tk.Label(self, text="Convert from", font=protocol.font)
         self._convert_to = tk.Label(self, text="To", font=protocol.font)
-        self.from_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
-        self.to_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
+        self._amount = tk.Label(self, text="Amount", font=protocol.font)
+        self.result_label = tk.Label(self, text="", font=(protocol.font_name, int(1.5 * protocol.font_size)), fg='#27742C')
+        self.show_result("")
+        self.hide_result()
+        self.from_text = tk.Entry(self, width=protocol.currency_width, font=protocol.font)
+        self.to_text = tk.Entry(self, width=protocol.currency_width, font=protocol.font)
+        self.amount_text = tk.Entry(self, width=int(protocol.text_width / 2), font=protocol.font)
 
         # Place objects
-        self._stop_button.place(x=protocol.buttons_x, y=230)
-        self._back_button.place(x=protocol.buttons_x, y=380)
+        self._stop_button.place(x=protocol.buttons_x, y=155)
+        self._back_button.place(x=protocol.buttons_x, y=305)
+        self._convert_button.place(x=protocol.buttons_x, y=455)
         self._convert_from.place(x=protocol.labels_x, y=20)
         self._convert_to.place(x=protocol.labels_x, y=220)
+        self._amount.place(x=protocol.labels_x, y=420)
         self.from_text.place(x=protocol.labels_x, y=80)
         self.to_text.place(x=protocol.labels_x, y=280)
+        self.amount_text.place(x=protocol.labels_x, y=480)
 
         # Log socket ID if one exists
         if protocol.socket_alive(self.client_bl.socket):
@@ -250,6 +259,27 @@ class MainFrame(tk.Frame):
     def on_click_stop_gui(self):
         protocol.reverse_button(self._stop_button)
         self.client_bl.on_click_stop()
+
+    def on_click_convert_gui(self):
+        protocol.logger.info("[CLIENTGUI] - Conversion process started")
+        protocol.logger.info(f"[CLIENTGUI] - From {self.from_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - To {self.to_text.get()}")
+        protocol.logger.info(f"[CLIENTGUI] - Amount: {self.amount_text.get()}")
+
+        # Make JSON
+        convert_info = ("CONVERT", self.from_text.get(), self.to_text.get(), self.amount_text.get())
+        json_info = json.dumps(convert_info)
+        protocol.logger.info("[CLIENTGUI] - JSON made")
+
+        # Send JSON to server
+        self.client_bl.send_data(json_info)
+
+    def show_result(self, text: str):
+        self.result_label.config(text=text)
+        self.result_label.place(x=450,y=300)
+
+    def hide_result(self):
+        self.result_label.place_forget()
 
 
 class ClientApp(tk.Tk):
@@ -296,6 +326,9 @@ class ClientApp(tk.Tk):
                 elif data == "LOGINFAIL":
                     protocol.logger.info("[CLIENTGUI] - Login failed")
                     self._current_frame.show_fail()
+                elif '=' in data:
+                    protocol.logger.info("[CLIENTGUI] - Result message received")
+                    self._current_frame.show_result(data)
 
         except OSError:
             # Exists to revert listening flag and to ignore errors that show up when the client socket closes

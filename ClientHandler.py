@@ -52,12 +52,12 @@ class ClientHandler:
                             self._client_socket.sendall("LOGINFAIL".encode(protocol.json_format))
                             protocol.logger.info("[CLIENTHANDLER] - Login fail message sent")
 
-
-                else:
-                    protocol.logger.info("[CLIENTHANDLER] - Client disconnected")
-                    self._client_socket.close()
-                    break
+                    elif user_data[0] == "CONVERT":
+                        protocol.logger.info("[CLIENTHANDLER] - Server got convert")
+                        result: str = f"{user_data[1]} {user_data[3]} ="
+                        self._client_socket.sendall(result.encode(protocol.json_format))
+                        protocol.logger.info("[CLIENTHANDLER] - Result message sent")
 
         except OSError:
-            # Exists to ignore the exception shown when the client is stopped but socket.recv() is still active
-            pass
+            protocol.logger.info("[CLIENTHANDLER] - Client disconnected")
+            self._client_socket.close()
