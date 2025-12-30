@@ -3,6 +3,10 @@ import logging
 from pathlib import Path
 import tkinter as tk
 from hashlib import sha256
+import smtplib
+from email.message import EmailMessage
+import os
+from dotenv import load_dotenv
 
 
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
@@ -64,6 +68,31 @@ def get_hash(password: str) -> str:
     password_hash = sha256(encoded_password).hexdigest()
     logger.info("[PROTOCOL] - Hash made")
     return password_hash
+
+def send_email(email_dest: str, subject: str, content: str):
+    # Load .env file
+    load_dotenv()
+
+    # Get info
+    email_address = os.getenv("EMAIL_ADDRESS")
+    email_password = os.getenv("EMAIL_PASSWORD")
+
+    # Create the email
+    msg = EmailMessage()
+    msg["From"] = f"Your App <{email_address}>"
+    msg["To"] = f"{email_dest}"
+    msg["Subject"] = subject
+    msg.set_content(content)
+
+    # Connect to Gmail's SMTP server
+    smtp = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    smtp.login(f"{email_address}", f"{email_password}")
+
+    # Send the email
+    smtp.send_message(msg)
+
+    # Close the connection
+    smtp.quit()
 
 
 # Commands that should be executed at the start of each program
