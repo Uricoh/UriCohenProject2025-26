@@ -31,7 +31,7 @@ user_tbl: str = "USERTBL" # Variable name is user_tbl because there may be more 
 def get_time_as_text() -> str:
     # Gets timestamp as string down to the microsecond
     current_datetime = datetime.now()
-    # .%f responsible for microseconds, all the way up to %Y for the year
+    # %f responsible for microseconds, all the way up to %Y for the year
     formatted_datetime_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
     return formatted_datetime_string
 
@@ -79,7 +79,7 @@ def _clear_log():
 # Call clearer function
 _clear_log()
 
-# Create logger, one logger exists for the entire project, client and server
+# Create logger, a logger is created each time protocol is imported, i.e. for each process, server and client
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=_log_path)
 logger = logging.getLogger(__name__)
 logger.info("[PROTOCOL] - Logger created")

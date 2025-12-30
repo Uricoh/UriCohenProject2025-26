@@ -1,3 +1,4 @@
 ~$i_Cohen_Project_book.doc
 *.tmp
 *.log
+.env
