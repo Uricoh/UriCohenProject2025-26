@@ -1,6 +1,7 @@
 import json
 import protocol
 from protocol import log
+from secrets import randbelow
 import dbprotocol
 
 
@@ -8,6 +9,9 @@ import dbprotocol
 class ClientHandler:
     def __init__(self, _client_socket):
         self._client_socket = _client_socket
+        # self._email and self._code are used for resetting passwords
+        self._email = None
+        self._code = None
 
     def receive(self):
         # This method runs in a special thread, unique for each client, created by Thread A on ServerBL
@@ -23,7 +27,7 @@ class ClientHandler:
 
                         if username:
                             self._client_socket.sendall("SIGNUPFAIL".encode(protocol.json_format))
-                            log.info("Signup fail message sent")
+                            log("Signup fail message sent")
 
                         else:
                             # Prevent SQL injection
@@ -53,11 +57,50 @@ class ClientHandler:
                             self._client_socket.sendall("LOGINFAIL".encode(protocol.json_format))
                             log("Login fail message sent")
 
+                    elif user_data[0] == "FORGOTEMAIL":
+                        log("Server received forgot password: email part")
+                        self._email = user_data[1]
+                        log(f"Email logged, {self._email}")
+
+                        result = dbprotocol.cursor.execute(
+                            f"SELECT * FROM {protocol.user_tbl} WHERE email = ?",
+                            (self._email,)).fetchone()
+                        # No need for commit because DB hasn't been changed
+
+                        if result:
+                            self._client_socket.sendall("FORGOTEMAIL".encode(protocol.json_format))
+                            self._code = f"{randbelow(1000000)}"
+                            while len(self._code) < 6:
+                                self._code = "0" + self._code
+                            email_msg = f"Hello. Your verification code is {self._code}. Enter this code to reset the password."
+                            email_subject = "Reset password"
+                            protocol.send_email(self._email, email_subject, email_msg)
+                            log("Forgot password email success message sent to client")
+                            log("Password reset code sent to user by email")
+                        else:
+                            self._client_socket.sendall("FORGOTEMAILFAIL".encode(protocol.json_format))
+                            log("Forgot password email fail message sent")
+
+                    elif user_data[0] == "FORGOTCODE":
+                        if user_data[1] == self._code:
+                            self._client_socket.sendall("FORGOTCODE".encode(protocol.json_format))
+                        else:
+                            self._client_socket.sendall("FORGOTCODEFAIL".encode(protocol.json_format))
+                            log("Forgot password code fail message sent")
+
+                    elif user_data[0] == "FORGOTSETPASSWORD":
+                        dbprotocol.cursor.execute(
+                            f"UPDATE {protocol.user_tbl} SET password = ? WHERE email = ?", (user_data[1], self._email))
+                        self._client_socket.sendall("FORGOTSETPASSWORD".encode(protocol.json_format))
+                        dbprotocol.conn.commit()
+                        log("Password reset")
+
                     elif user_data[0] == "CONVERT":
                         log("Server received convert message")
                         result: str = f"{user_data[1]} {user_data[3]} ="
                         self._client_socket.sendall(result.encode(protocol.json_format))
                         log("Result message sent")
+
 
         except OSError:
             log("Client disconnected")

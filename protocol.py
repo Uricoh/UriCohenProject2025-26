@@ -26,6 +26,7 @@ text_width: int = 20 # Best to make it a number that divides evenly by many othe
 currency_width: int = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
 labels_x: int = 50 # Left
 buttons_x: int = 1000 # Right
+center_y: int = 300
 json_format: str = 'utf-8'
 bg_path: str = "background.jpg"
 _log_path: str = "log.log"

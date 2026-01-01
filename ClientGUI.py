@@ -13,8 +13,9 @@ class AppFrame(tk.Frame): # Frame template for the frames, they should inherit f
     def __init__(self, client_bl, title: str):
         super().__init__()
         self.client_bl = client_bl
+
         # Next line exists so IDE (PyCharm) knows the type of self.master and won't show error when using its methods
-        self.app_master: ClientGUI = cast(ClientGUI, self.master)
+        self.app_master: ClientApp = cast(ClientApp, self.master)
         self.app_master.title(f"{protocol.app_name} - {title}")
 
         # Show background image
@@ -23,6 +24,11 @@ class AppFrame(tk.Frame): # Frame template for the frames, they should inherit f
         self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # Log socket ID if one exists
+        if protocol.socket_alive(self.client_bl.socket):
+            log(f"Socket ID: {id(self.client_bl.socket)}")
+            # Compare this ID with ID in other frames
 
 class StartFrame(AppFrame):
     def __init__(self, client_bl):
@@ -38,11 +44,6 @@ class StartFrame(AppFrame):
         # Place buttons
         self._signup_button.place(x=protocol.buttons_x, y=80)
         self._login_button.place(x=protocol.buttons_x, y=230)
-
-        # Log socket ID if one exists
-        if protocol.socket_alive(self.client_bl.socket):
-            log(f"Socket ID: {id(self.client_bl.socket)}")
-            # Compare this ID with ID in other frames
 
 
 class LoginFrame(AppFrame):
@@ -89,11 +90,6 @@ class LoginFrame(AppFrame):
         self._login_button.place(x=protocol.buttons_x, y=380)
         self._back_button.place(x=protocol.buttons_x, y=530)
 
-        # Log socket ID if one exists
-        if protocol.socket_alive(self.client_bl.socket):
-            log(f"Socket ID: {id(self.client_bl.socket)}")
-            # Compare this ID with ID in other frames
-
     def on_click_start_gui(self, reverse_buttons: bool):
         # reverse_buttons exists because when method is called from forgot password, there's no need to reverse
         # the buttons because the frame is being changed anyway
@@ -121,8 +117,9 @@ class LoginFrame(AppFrame):
         self.client_bl.send_data(json_data)
 
     def on_click_forgot_gui(self):
-        self.on_click_start_gui(False)
-        self.app_master.show_frame(ForgotFrame)
+        if not protocol.socket_alive(self.client_bl.socket):
+            self.on_click_start_gui(False)
+        self.app_master.show_frame(ForgotEmailFrame)
 
     def show_fail(self):
         self._fail_label.place(x=protocol.labels_x, y=370)
@@ -174,11 +171,6 @@ class SignupFrame(AppFrame):
         self._signup_button.place(x=protocol.buttons_x, y=380)
         self._back_button.place(x=protocol.buttons_x, y=530)
 
-        # Log socket ID if one exists
-        if protocol.socket_alive(self.client_bl.socket):
-            log(f"Socket ID: {id(self.client_bl.socket)}")
-            # Compare this ID with ID in other frames
-
     def on_click_start_gui(self):
         self.client_bl.on_click_start()
         self.app_master.start_listening()
@@ -211,10 +203,104 @@ class SignupFrame(AppFrame):
         self._fail_label.place_forget()
 
 
-class ForgotFrame(AppFrame):
+class ForgotEmailFrame(AppFrame):
     def __init__(self, client_bl):
-        # Constructors and title
+        # Constructor
         super().__init__(client_bl, "Forgot password?")
+
+        # Create objects
+        self.not_found_label = tk.Label(self, text="Account not found", font=protocol.font, fg='red')
+        self.enter_label = tk.Label(self, text="Enter email", font=protocol.font)
+        self.email_text = tk.Entry(self, width=int(protocol.text_width * 1.5), font=protocol.font)
+        self.enter_button = tk.Button(self, text="Enter", font=protocol.font, command=self.on_click_enter_gui)
+        self.back_button = tk.Button(self, text="Back", font=protocol.font,
+                                     command=lambda:self.app_master.show_frame(StartFrame))
+
+        # Place objects
+        self.show_not_found()
+        self.hide_not_found()
+        self.enter_label.place(x=450, y=protocol.center_y - 100)
+        self.email_text.place(x=250, y=protocol.center_y)
+        self.enter_button.place(x=450, y=protocol.center_y + 100)
+        self.back_button.place(x=450, y=protocol.center_y + 250)
+
+    def on_click_enter_gui(self):
+        log(f"Email: {self.email_text.get()}")
+
+        # Make JSON
+        data = ("FORGOTEMAIL", self.email_text.get())
+        json_data = json.dumps(data)
+
+        # Send JSON to server
+        self.client_bl.send_data(json_data)
+
+    def show_not_found(self):
+        self.not_found_label.place(x=450, y=protocol.center_y - 200)
+
+    def hide_not_found(self):
+        self.not_found_label.place_forget()
+
+
+class ForgotCodeFrame(AppFrame):
+    def __init__(self, client_bl):
+        # Constructor
+        super().__init__(client_bl, "Forgot password?")
+
+        # Create objects
+        self.wrong_label = tk.Label(self, text="Wrong code", font=protocol.font, fg='red')
+        self.enter_label = tk.Label(self, text="Enter code", font=protocol.font)
+        self.code_text = tk.Entry(self, width=int(protocol.text_width * 1.5), font=protocol.font)
+        self.enter_button = tk.Button(self, text="Enter", font=protocol.font, command=self.on_click_enter_gui)
+        self.back_button = tk.Button(self, text="Back", font=protocol.font,
+                                     command=lambda:self.app_master.show_frame(StartFrame))
+
+        # Place objects
+        self.show_wrong()
+        self.hide_wrong()
+        self.enter_label.place(x=450, y=protocol.center_y - 100)
+        self.code_text.place(x=250, y=protocol.center_y)
+        self.enter_button.place(x=450, y=protocol.center_y + 100)
+        self.back_button.place(x=450, y=protocol.center_y + 250)
+
+    def on_click_enter_gui(self):
+        log(f"Code: {self.code_text.get()}")
+
+        # Make JSON
+        data = ("FORGOTCODE", self.code_text.get())
+        json_data = json.dumps(data)
+
+        # Send JSON to server
+        self.client_bl.send_data(json_data)
+
+    def show_wrong(self):
+        self.wrong_label.place(x=450, y=protocol.center_y - 200)
+
+    def hide_wrong(self):
+        self.wrong_label.place_forget()
+
+
+class ForgotSetFrame(AppFrame):
+    def __init__(self, client_bl):
+        # Constructor
+        super().__init__(client_bl, "Forgot password?")
+
+        # Create objects
+        self.password_label = tk.Label(self, text="Enter new password", font=protocol.font)
+        self.password_text = tk.Entry(self, width=protocol.text_width, font=protocol.font, show='•')
+        self.password_button = tk.Button(self, text="Enter", font=protocol.font, command=self.on_click_enter_gui)
+
+        # Place objects
+        self.password_label.place(x=450, y=protocol.center_y - 100)
+        self.password_text.place(x=450, y=protocol.center_y)
+        self.password_button.place(x=450, y=protocol.center_y + 100)
+
+    def on_click_enter_gui(self):
+        # Make JSON
+        data = ("FORGOTSETPASSWORD", protocol.get_hash(self.password_text.get()))
+        json_data = json.dumps(data)
+
+        # Send JSON to server
+        self.client_bl.send_data(json_data)
 
 
 class MainFrame(AppFrame):
@@ -249,10 +335,6 @@ class MainFrame(AppFrame):
         self.to_text.place(x=protocol.labels_x, y=280)
         self.amount_text.place(x=protocol.labels_x, y=480)
 
-        # Log socket ID if one exists
-        if protocol.socket_alive(self.client_bl.socket):
-            log(f"Socket ID: {id(self.client_bl.socket)}")
-            # Compare this ID with ID in other frames
 
     def on_click_stop_gui(self):
         protocol.reverse_button(self._stop_button)
@@ -274,14 +356,12 @@ class MainFrame(AppFrame):
 
     def show_result(self, text: str):
         self.result_label.config(text=text)
-        self.result_label.place(x=450,y=300)
+        self.result_label.place(x=450, y=protocol.center_y)
 
     def hide_result(self):
         self.result_label.place_forget()
 
-
-
-class ClientGUI(tk.Tk):
+class ClientApp(tk.Tk):
     def __init__(self, client_bl):
         # Constructors
         super().__init__()
@@ -318,6 +398,21 @@ class ClientGUI(tk.Tk):
                 elif data == "LOGINFAIL":
                     log("Login failed")
                     self._current_frame.show_fail()
+                elif data == "FORGOTEMAIL":
+                    log("Forgot email successful")
+                    self.show_frame(ForgotCodeFrame)
+                elif data == "FORGOTEMAILFAIL":
+                    log("Forgot email failed")
+                    self._current_frame.show_not_found()
+                elif data == "FORGOTCODE":
+                    log("Forgot code successful")
+                    self.show_frame(ForgotSetFrame)
+                elif data == "FORGOTCODEFAIL":
+                    log("Forgot code failed")
+                    self._current_frame.show_wrong()
+                elif data == "FORGOTSETPASSWORD":
+                    log("Password reset")
+                    self.show_frame(LoginFrame)
                 elif '=' in data:
                     log("Result message received")
                     self._current_frame.show_result(data)
@@ -337,5 +432,5 @@ class ClientGUI(tk.Tk):
 if __name__ == "__main__":
     # Run client
     client_bl: ClientBL = ClientBL()
-    app: ClientGUI = ClientGUI(client_bl)
+    app: ClientApp = ClientApp(client_bl)
     app.mainloop()
