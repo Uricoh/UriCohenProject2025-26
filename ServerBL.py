@@ -1,4 +1,5 @@
 import protocol
+from protocol import log
 import threading
 import socket
 from ClientHandler import ClientHandler
@@ -14,15 +15,15 @@ class ServerBL:
 
     def on_click_start(self):
         # BLA - bind, listen, accept
-        protocol.logger.info("[SERVERBL] - Start button clicked")
+        log("Start button clicked")
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        protocol.logger.info("[SERVERBL] - Socket created")
+        log("Socket created")
         self._socket.bind((protocol.SERVER_IP, protocol.PORT))
-        protocol.logger.info("[SERVERBL] - Socket bound")
+        log("Socket bound")
         self._socket.listen(5)
-        protocol.logger.info("[SERVERBL] - Socket listening")
+        log("Socket listening")
         threading.Thread(target=self.accept, daemon=True).start()
-        protocol.logger.info("[SERVERBL] - Accept thread started")
+        log("Accept thread started")
 
     def accept(self):
         # This runs in Thread A, not in main thread
@@ -33,15 +34,15 @@ class ServerBL:
                 self._client_handler_list.append(client_handler)
                 client_thread = threading.Thread(target=client_handler.receive, daemon=True).start()
                 self._client_thread_list.append(client_thread)
-                protocol.logger.info(f"[SERVERBL] - ClientHandler created")
-                protocol.logger.info(f"[SERVERBL] - Client accepted, IP: {client_address}")
+                log("ClientHandler created")
+                log(f"[SERVERBL] - Client accepted, IP: {client_address}")
             except OSError:
                 pass
 
     def on_click_stop(self):
-        protocol.logger.info("[SERVERBL] - Stop button clicked")
+        log("Stop button clicked")
         # Close DB connection, only time when connection is closed and only use of import dbprotocol
         dbprotocol.conn.close()
-        protocol.logger.info("[SERVERBL] - DB connection closed")
+        log("DB connection closed")
         self._socket.close()
-        protocol.logger.info("[SERVERBL] - Server closed")
+        log("Server closed")

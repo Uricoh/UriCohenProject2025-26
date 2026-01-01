@@ -1,5 +1,6 @@
 import json
 import protocol
+from protocol import log
 import dbprotocol
 
 
@@ -22,7 +23,7 @@ class ClientHandler:
 
                         if username:
                             self._client_socket.sendall("SIGNUPFAIL".encode(protocol.json_format))
-                            protocol.logger.info("[CLIENTHANDLER] - Signup fail message sent")
+                            log.info("Signup fail message sent")
 
                         else:
                             # Prevent SQL injection
@@ -32,9 +33,9 @@ class ClientHandler:
                                                          user_data[3]))
                             dbprotocol.conn.commit()  # Commit after changing DB
                             self._client_socket.sendall("SIGNUP".encode(protocol.json_format))
-                            protocol.logger.info(f"[CLIENTHANDLER] - Data entered, Username: {user_data[1]}")
-                            protocol.logger.info(f"[CLIENTHANDLER] - Data entered, Password (hash): {user_data[2][:5]}...")
-                            protocol.logger.info(f"[CLIENTHANDLER] - Data entered, Email: {user_data[3]}")
+                            log(f"Data entered, Username: {user_data[1]}")
+                            log(f"Data entered, Password (hash): {user_data[2][:5]}...")
+                            log(f"Data entered, Email: {user_data[3]}")
 
                     elif user_data[0] == "LOGIN":
                         # Prevent SQL injection
@@ -44,20 +45,20 @@ class ClientHandler:
                         # No need for commit because DB hasn't been changed
 
                         if result:
-                            protocol.logger.info(f"[CLIENTHANDLER] - Login done, Username: {user_data[1]}")
+                            log(f"Login done, Username: {user_data[1]}")
                             self._client_socket.sendall("LOGIN".encode(protocol.json_format))
-                            protocol.logger.info("[CLIENTHANDLER] - Login success message sent")
+                            log("Login success message sent")
                         else:
-                            protocol.logger.info(f"[CLIENTHANDLER] - Login failed, Username: {user_data[1]}")
+                            log("Login failed, Username: {user_data[1]}")
                             self._client_socket.sendall("LOGINFAIL".encode(protocol.json_format))
-                            protocol.logger.info("[CLIENTHANDLER] - Login fail message sent")
+                            log("Login fail message sent")
 
                     elif user_data[0] == "CONVERT":
-                        protocol.logger.info("[CLIENTHANDLER] - Server got convert")
+                        log("Server received convert message")
                         result: str = f"{user_data[1]} {user_data[3]} ="
                         self._client_socket.sendall(result.encode(protocol.json_format))
-                        protocol.logger.info("[CLIENTHANDLER] - Result message sent")
+                        log("Result message sent")
 
         except OSError:
-            protocol.logger.info("[CLIENTHANDLER] - Client disconnected")
+            log("Client disconnected")
             self._client_socket.close()

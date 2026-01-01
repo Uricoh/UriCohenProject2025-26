@@ -1,4 +1,5 @@
 import protocol
+from protocol import log
 import sqlite3
 
 # One connection exists for the entire project, should only be imported and accessed by server files
@@ -11,4 +12,4 @@ cursor.execute(f'''CREATE TABLE IF NOT EXISTS {protocol.user_tbl} (
                                 password TEXT NOT NULL,
                                 datetime TEXT NOT NULL)
                                 ''')
-protocol.logger.info("[DBPROTOCOL] - SQL connection established")
+log("SQL connection established")

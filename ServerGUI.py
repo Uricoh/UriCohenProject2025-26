@@ -11,7 +11,7 @@ class ServerGUI(ServerBL):
 
         # Create root
         self._root = tk.Tk()
-        self._root.title("Currency Converter - Server")
+        self._root.title(f"{protocol.app_name} - Server")
         self._root.geometry(f"{protocol.width}x{protocol.height}")
 
         # Show background image
