@@ -11,6 +11,7 @@ from typing import cast
 
 class AppFrame(tk.Frame): # Frame template for the frames, they should inherit from here
     def __init__(self, client_bl, title: str):
+        # Call constructor and get BL
         super().__init__()
         self.client_bl = client_bl
 
@@ -305,7 +306,7 @@ class ForgotSetFrame(AppFrame):
 
 class MainFrame(AppFrame):
     def __init__(self, client_bl):
-        # Constructors and title
+        # Constructor
         super().__init__(client_bl, "Main Page")
 
         # Create objects

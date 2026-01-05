@@ -72,7 +72,8 @@ class ClientHandler:
                             self._code = f"{randbelow(1000000)}"
                             while len(self._code) < 6:
                                 self._code = "0" + self._code
-                            email_msg = f"Hello. Your verification code is {self._code}. Enter this code to reset the password."
+                            email_msg = f'''Hello. Your verification code is {self._code}
+                            . Enter this code to reset the password.'''
                             email_subject = "Reset password"
                             protocol.send_email(self._email, email_subject, email_msg)
                             log("Forgot password email success message sent to client")

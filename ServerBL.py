@@ -9,9 +9,6 @@ import dbprotocol
 class ServerBL:
     def __init__(self):
         self._socket = None
-        # These properties may be used in the future, if not please delete
-        self._client_handler_list = []
-        self._client_thread_list = []
 
     def on_click_start(self):
         # BLA - bind, listen, accept
@@ -31,11 +28,9 @@ class ServerBL:
             try:
                 (client_socket, client_address) = self._socket.accept()
                 client_handler: ClientHandler = ClientHandler(client_socket)
-                self._client_handler_list.append(client_handler)
-                client_thread = threading.Thread(target=client_handler.receive, daemon=True).start()
-                self._client_thread_list.append(client_thread)
+                threading.Thread(target=client_handler.receive, daemon=True).start()
                 log("ClientHandler created")
-                log(f"[SERVERBL] - Client accepted, IP: {client_address}")
+                log(f"Client accepted, IP: {client_address}")
             except OSError:
                 pass
 

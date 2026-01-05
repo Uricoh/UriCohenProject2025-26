@@ -39,9 +39,9 @@ def log(message: str) -> None:
     # Get class name
     caller_frame = currentframe().f_back
     caller_self = caller_frame.f_locals.get("self")
+
     if caller_self:
         module_or_class = caller_self.__class__.__name__.upper()
-
     else:
         # If class doesn't exist, get module name instead
         module_or_class = f"{caller_frame.f_globals.get('__name__').upper()}.py"
