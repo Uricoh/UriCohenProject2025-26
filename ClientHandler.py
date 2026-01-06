@@ -17,26 +17,26 @@ class ClientHandler:
         # This method runs in a special thread, unique for each client, created by Thread A on ServerBL
         try:
             while True:
-                data = self._client_socket.recv(1024).decode(protocol.json_format)
+                data = self._client_socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
                 if data:
                     user_data = json.loads(data)
 
                     if user_data[0] == "SIGNUP":
-                        username = dbprotocol.cursor.execute(f'''SELECT * FROM {protocol.user_tbl} WHERE username = ?
+                        username = dbprotocol.cursor.execute(f'''SELECT * FROM {protocol.USER_TBL} WHERE username = ?
                         ''', (user_data[1], )).fetchone()
 
-                        if username:
-                            self._client_socket.sendall("SIGNUPFAIL".encode(protocol.json_format))
+                        if username: # If username already exists
+                            self._client_socket.sendall("SIGNUPFAIL".encode(protocol.ENCODE_FORMAT))
                             log("Signup fail message sent")
 
                         else:
                             # Prevent SQL injection
-                            dbprotocol.cursor.execute(f'''INSERT INTO {protocol.user_tbl}
+                            dbprotocol.cursor.execute(f'''INSERT INTO {protocol.USER_TBL}
                                                     ("username", "password", "datetime", "email") VALUES (?, ?, ?, ?)'''
                                                       , (user_data[1], user_data[2], protocol.get_time_as_text(),
                                                          user_data[3]))
                             dbprotocol.conn.commit()  # Commit after changing DB
-                            self._client_socket.sendall("SIGNUP".encode(protocol.json_format))
+                            self._client_socket.sendall("SIGNUP".encode(protocol.ENCODE_FORMAT))
                             log(f"Data entered, Username: {user_data[1]}")
                             log(f"Data entered, Password (hash): {user_data[2][:5]}...")
                             log(f"Data entered, Email: {user_data[3]}")
@@ -44,64 +44,74 @@ class ClientHandler:
                     elif user_data[0] == "LOGIN":
                         # Prevent SQL injection
                         result = dbprotocol.cursor.execute(
-                            f"SELECT * FROM {protocol.user_tbl} WHERE username = ? AND password = ?",
+                            f"SELECT * FROM {protocol.USER_TBL} WHERE username = ? AND password = ?",
                             (user_data[1], user_data[2])).fetchone()
                         # No need for commit because DB hasn't been changed
 
-                        if result:
+                        if result: # If such account found
                             log(f"Login done, Username: {user_data[1]}")
-                            self._client_socket.sendall("LOGIN".encode(protocol.json_format))
+                            self._client_socket.sendall("LOGIN".encode(protocol.ENCODE_FORMAT))
                             log("Login success message sent")
                         else:
                             log("Login failed, Username: {user_data[1]}")
-                            self._client_socket.sendall("LOGINFAIL".encode(protocol.json_format))
+                            self._client_socket.sendall("LOGINFAIL".encode(protocol.ENCODE_FORMAT))
                             log("Login fail message sent")
 
                     elif user_data[0] == "FORGOTEMAIL":
+                        # Forgot password, stage 1
+                        # Get email
                         log("Server received forgot password: email part")
                         self._email = user_data[1]
                         log(f"Email logged, {self._email}")
 
+                        # Search for account with the email
                         result = dbprotocol.cursor.execute(
-                            f"SELECT * FROM {protocol.user_tbl} WHERE email = ?",
+                            f"SELECT * FROM {protocol.USER_TBL} WHERE email = ?",
                             (self._email,)).fetchone()
                         # No need for commit because DB hasn't been changed
 
-                        if result:
-                            self._client_socket.sendall("FORGOTEMAIL".encode(protocol.json_format))
-                            self._code = f"{randbelow(1000000)}"
+                        if result: # If such account found
+                            self._client_socket.sendall("FORGOTEMAIL".encode(protocol.ENCODE_FORMAT))
+
+                            # Generate verification code
+                            self._code = f"{randbelow(10 ** protocol.SEC_CODE_LENGTH)}"
                             while len(self._code) < 6:
                                 self._code = "0" + self._code
-                            email_msg = f'''Hello. Your verification code is {self._code}
-                            . Enter this code to reset the password.'''
+
+                            # Create email message without exceeding 120-char best practice
+                            email_msg = f"Hello. Your verification code is {self._code}"
+                            email_msg += ". Enter this code to reset the password."
                             email_subject = "Reset password"
+
+                            # Send email
                             protocol.send_email(self._email, email_subject, email_msg)
                             log("Forgot password email success message sent to client")
                             log("Password reset code sent to user by email")
                         else:
-                            self._client_socket.sendall("FORGOTEMAILFAIL".encode(protocol.json_format))
+                            self._client_socket.sendall("FORGOTEMAILFAIL".encode(protocol.ENCODE_FORMAT))
                             log("Forgot password email fail message sent")
 
                     elif user_data[0] == "FORGOTCODE":
+                        # Forgot password, stage 2
                         if user_data[1] == self._code:
-                            self._client_socket.sendall("FORGOTCODE".encode(protocol.json_format))
+                            self._client_socket.sendall("FORGOTCODE".encode(protocol.ENCODE_FORMAT))
                         else:
-                            self._client_socket.sendall("FORGOTCODEFAIL".encode(protocol.json_format))
+                            self._client_socket.sendall("FORGOTCODEFAIL".encode(protocol.ENCODE_FORMAT))
                             log("Forgot password code fail message sent")
 
                     elif user_data[0] == "FORGOTSETPASSWORD":
+                        # Forgot password, stage 3
                         dbprotocol.cursor.execute(
-                            f"UPDATE {protocol.user_tbl} SET password = ? WHERE email = ?", (user_data[1], self._email))
-                        self._client_socket.sendall("FORGOTSETPASSWORD".encode(protocol.json_format))
+                            f"UPDATE {protocol.USER_TBL} SET password = ? WHERE email = ?", (user_data[1], self._email))
+                        self._client_socket.sendall("FORGOTSETPASSWORD".encode(protocol.ENCODE_FORMAT))
                         dbprotocol.conn.commit()
                         log("Password reset")
 
                     elif user_data[0] == "CONVERT":
                         log("Server received convert message")
                         result: str = f"{user_data[1]} {user_data[3]} ="
-                        self._client_socket.sendall(result.encode(protocol.json_format))
+                        self._client_socket.sendall(result.encode(protocol.ENCODE_FORMAT))
                         log("Result message sent")
-
 
         except OSError:
             log("Client disconnected")

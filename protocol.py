@@ -3,6 +3,8 @@ from datetime import datetime
 import logging
 from pathlib import Path
 import tkinter as tk
+from typing import Final, Iterable
+from socket import socket
 from inspect import currentframe
 from hashlib import sha256
 from smtplib import SMTP_SSL
@@ -11,30 +13,37 @@ from os import getenv
 from dotenv import load_dotenv
 
 
+# Network constants
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
-PORT: int = 8822
+PORT: Final[int] = 8822
 # Means this computer, change to current server IP address to connect to server based in another computer
-SERVER_IP: str = "127.0.0.1"
+SERVER_IP: Final[str] = "127.0.0.1"
+
+# Other constants
+SCREEN_WIDTH: Final[int] = 1500
+SCREEN_HEIGHT: Final[int] = 750
+FONT_NAME: Final[str] = 'Arial'
+FONT_SIZE: Final[int] = 32 # Best to make it a number that divides evenly by many other numbers
+FONT: Final[tuple] = (FONT_NAME, FONT_SIZE)
+TEXT_WIDTH: Final[int] = 20 # Best to make it a number that divides evenly by many other numbers
+CURRENCY_WIDTH: Final[int] = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
+LABELS_X: Final[int] = 50 # Left
+BUTTONS_X: Final[int] = 1000 # Right
+CENTER_Y: Final[int] = 300
+SEC_CODE_LENGTH: Final[int] = 6
+BUFFER_SIZE: Final[int] = 1024
+ENCODE_FORMAT: Final[str] = 'utf-8'
+BG_PATH: Final[str] = "background.jpg"
+_LOG_PATH: Final[str] = "log.log"
+DB_NAME: Final[str] = "database.db"
+USER_TBL: Final[str] = "USERTBL" # Variable name is user_tbl because there may be more tables in the future
+APP_NAME: Final[str] = "Currency Converter"
 
 
-width: int = 1500
-height: int = 750
-font_name: str = 'Arial'
-font_size: int = 32 # Best to make it a number that divides evenly by many other numbers
-font: tuple = (font_name, font_size)
-text_width: int = 20 # Best to make it a number that divides evenly by many other numbers
-currency_width: int = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
-labels_x: int = 50 # Left
-buttons_x: int = 1000 # Right
-center_y: int = 300
-json_format: str = 'utf-8'
-bg_path: str = "background.jpg"
-_log_path: str = "log.log"
-db_name: str = "database.db"
-user_tbl: str = "USERTBL" # Variable name is user_tbl because there may be more tables in the future
-app_name: str = "Currency Converter"
+# Functions
 
-
+# IMPORTANT: Function doesn't work with inheritance: if Class A calls a method from Class B from which it inherits,
+# function will show A instead of B
 def log(message: str) -> None:
     # Get class name
     caller_frame = currentframe().f_back
@@ -58,18 +67,17 @@ def get_time_as_text() -> str:
     return formatted_datetime_string
 
 def reverse_button(button: tk.Button) -> None:
-    if button['state'] == tk.NORMAL:
-        button['state'] = tk.DISABLED
-    else:
+    if button['state'] == tk.DISABLED:
         button['state'] = tk.NORMAL
+    else:
+        button['state'] = tk.DISABLED
 
-def reverse_many_buttons(buttons: tuple) -> None:
+def reverse_many_buttons(buttons: Iterable | tk.Button) -> None:
     for button in buttons:
         reverse_button(button)
 
 # Check whether a socket still exists and active - "alive", and so can be contacted
-# Don't add "my_socket: socket" because then we have to import module 'socket'
-def socket_alive(my_socket) -> bool:
+def socket_alive(my_socket: socket) -> bool:
     if my_socket is None:
         return False
     else:
@@ -82,7 +90,7 @@ def socket_alive(my_socket) -> bool:
             return False
 
 def get_hash(password: str) -> str:
-    encoded_password = password.encode(json_format)
+    encoded_password = password.encode(ENCODE_FORMAT)
     password_hash = sha256(encoded_password).hexdigest()
     log("Hash made")
     return password_hash
@@ -97,7 +105,7 @@ def send_email(email_dest: str, subject: str, content: str) -> None:
 
     # Create the email
     msg = EmailMessage()
-    msg["From"] = f"{app_name} <{email_address}>"
+    msg["From"] = f"{APP_NAME} <{email_address}>"
     msg["To"] = email_dest
     msg["Subject"] = subject
     msg.set_content(content)
@@ -112,13 +120,13 @@ def send_email(email_dest: str, subject: str, content: str) -> None:
     # Close the connection
     smtp.quit()
 
-
 # Commands that should be executed at the start of each program
 
 # Clear log file if it exists
+
 # 1. Define clearer function
 def _clear_log():
-    log_file = Path(_log_path)
+    log_file = Path(_LOG_PATH)
     if log_file.exists():
         log_file.write_text('') # Overwrites file with empty string
 
@@ -126,5 +134,5 @@ def _clear_log():
 _clear_log()
 
 # Create logger, a logger is created each time protocol is imported, i.e. for each process, server and client
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=_log_path)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=_LOG_PATH)
 log("Logger created")

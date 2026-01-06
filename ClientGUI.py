@@ -5,7 +5,6 @@ import protocol
 from protocol import log
 import json
 import tkinter as tk
-from tkinter import PhotoImage
 from PIL import Image, ImageTk
 from typing import cast
 
@@ -17,12 +16,12 @@ class AppFrame(tk.Frame): # Frame template for the frames, they should inherit f
 
         # Next line exists so IDE (PyCharm) knows the type of self.master and won't show error when using its methods
         self.app_master: ClientApp = cast(ClientApp, self.master)
-        self.app_master.title(f"{protocol.app_name} - {title}")
+        self.app_master.title(f"{protocol.APP_NAME} - {title}")
 
         # Show background image
-        bg_image = Image.open(protocol.bg_path)
-        bg_reimage = bg_image.resize((protocol.width, protocol.height))
-        self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
+        bg_image = Image.open(protocol.BG_PATH)
+        bg_reimage = bg_image.resize((protocol.SCREEN_WIDTH, protocol.SCREEN_HEIGHT))
+        self.bg_pimage: tk.PhotoImage = ImageTk.PhotoImage(bg_reimage)
         self.bg_label = tk.Label(self, image=self.bg_pimage)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -37,14 +36,14 @@ class StartFrame(AppFrame):
         super().__init__(client_bl, "Start Page")
 
         # Create buttons
-        self._signup_button = tk.Button(self, text="Sign up", font=protocol.font,
+        self._signup_button = tk.Button(self, text="Sign up", font=protocol.FONT,
                                         command=lambda:self.app_master.show_frame(SignupFrame))
-        self._login_button = tk.Button(self, text="Log in", font=protocol.font,
+        self._login_button = tk.Button(self, text="Log in", font=protocol.FONT,
                                        command=lambda:self.app_master.show_frame(LoginFrame))
 
         # Place buttons
-        self._signup_button.place(x=protocol.buttons_x, y=80)
-        self._login_button.place(x=protocol.buttons_x, y=230)
+        self._signup_button.place(x=protocol.BUTTONS_X, y=80)
+        self._login_button.place(x=protocol.BUTTONS_X, y=230)
 
 
 class LoginFrame(AppFrame):
@@ -53,22 +52,22 @@ class LoginFrame(AppFrame):
         super().__init__(client_bl, "Log in")
 
         # Create labels
-        username_label = tk.Label(self, text="Username:", font=protocol.font)
-        password_label = tk.Label(self, text="Password:", font=protocol.font)
-        self._fail_label = tk.Label(self, text="Username or password is incorrect", font=protocol.font, fg='red')
+        username_label = tk.Label(self, text="Username:", font=protocol.FONT)
+        password_label = tk.Label(self, text="Password:", font=protocol.FONT)
+        self._fail_label = tk.Label(self, text="Username or password is incorrect", font=protocol.FONT, fg='red')
 
         # Create text fields
-        self._username_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
-        self._password_text = tk.Entry(self, width=protocol.text_width, font=protocol.font, show='•')
+        self._username_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
+        self._password_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
 
         # Create buttons
-        self._start_button = tk.Button(self, text="Start", font=protocol.font,
+        self._start_button = tk.Button(self, text="Start", font=protocol.FONT,
                                        command=lambda:self.on_click_start_gui(True))
-        self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
-        self._login_button = tk.Button(self, text="Log in", font=protocol.font, command=self.on_click_login_gui)
-        self._back_button = tk.Button(self, text="Back", font=protocol.font,
+        self._stop_button = tk.Button(self, text="Stop", font=protocol.FONT, command=self.on_click_stop_gui)
+        self._login_button = tk.Button(self, text="Log in", font=protocol.FONT, command=self.on_click_login_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
-        self._forgot_button = tk.Button(self, text="Forgot password?", font=protocol.font,
+        self._forgot_button = tk.Button(self, text="Forgot password?", font=protocol.FONT,
                                         command=self.on_click_forgot_gui)
 
         # Configure buttons
@@ -78,18 +77,18 @@ class LoginFrame(AppFrame):
             protocol.reverse_many_buttons((self._stop_button, self._login_button))
 
         # Place objects
-        username_label.place(x=protocol.labels_x, y=20)
-        password_label.place(x=protocol.labels_x, y=220)
+        username_label.place(x=protocol.LABELS_X, y=20)
+        password_label.place(x=protocol.LABELS_X, y=220)
         self.show_fail()
         self.hide_fail()
-        self._username_text.place(x=protocol.labels_x, y=80)
-        self._password_text.place(x=protocol.labels_x, y=280)
-        self._forgot_button.place(x=protocol.labels_x, y=420)
+        self._username_text.place(x=protocol.LABELS_X, y=80)
+        self._password_text.place(x=protocol.LABELS_X, y=280)
+        self._forgot_button.place(x=protocol.LABELS_X, y=420)
         # The forgot password button is intentionally placed with the labels, rather than with the buttons
-        self._start_button.place(x=protocol.buttons_x, y=80)
-        self._stop_button.place(x=protocol.buttons_x, y=230)
-        self._login_button.place(x=protocol.buttons_x, y=380)
-        self._back_button.place(x=protocol.buttons_x, y=530)
+        self._start_button.place(x=protocol.BUTTONS_X, y=80)
+        self._stop_button.place(x=protocol.BUTTONS_X, y=230)
+        self._login_button.place(x=protocol.BUTTONS_X, y=380)
+        self._back_button.place(x=protocol.BUTTONS_X, y=530)
 
     def on_click_start_gui(self, reverse_buttons: bool):
         # reverse_buttons exists because when method is called from forgot password, there's no need to reverse
@@ -123,7 +122,7 @@ class LoginFrame(AppFrame):
         self.app_master.show_frame(ForgotEmailFrame)
 
     def show_fail(self):
-        self._fail_label.place(x=protocol.labels_x, y=370)
+        self._fail_label.place(x=protocol.LABELS_X, y=580)
 
     def hide_fail(self):
         self._fail_label.place_forget()
@@ -135,21 +134,21 @@ class SignupFrame(AppFrame):
         super().__init__(client_bl, "Sign up")
 
         # Create labels
-        username_label = tk.Label(self, text="Username:", font=protocol.font)
-        password_label = tk.Label(self, text="Password:", font=protocol.font)
-        email_label = tk.Label(self, text="Email:", font=protocol.font)
-        self._fail_label = tk.Label(self, text="Username already exists", font=protocol.font, fg='red')
+        username_label = tk.Label(self, text="Username:", font=protocol.FONT)
+        password_label = tk.Label(self, text="Password:", font=protocol.FONT)
+        email_label = tk.Label(self, text="Email:", font=protocol.FONT)
+        self._fail_label = tk.Label(self, text="Username already exists", font=protocol.FONT, fg='red')
 
         # Create text fields
-        self._username_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
-        self._password_text = tk.Entry(self, width=protocol.text_width, font=protocol.font, show='•')
-        self._email_text = tk.Entry(self, width=protocol.text_width, font=protocol.font)
+        self._username_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
+        self._password_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
+        self._email_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
 
         # Create buttons
-        self._start_button = tk.Button(self, text="Start", font=protocol.font, command=self.on_click_start_gui)
-        self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
-        self._signup_button = tk.Button(self, text="Sign up", font=protocol.font, command=self.on_click_signup_gui)
-        self._back_button = tk.Button(self, text="Back", font=protocol.font,
+        self._start_button = tk.Button(self, text="Start", font=protocol.FONT, command=self.on_click_start_gui)
+        self._stop_button = tk.Button(self, text="Stop", font=protocol.FONT, command=self.on_click_stop_gui)
+        self._signup_button = tk.Button(self, text="Sign up", font=protocol.FONT, command=self.on_click_signup_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
 
         # Adjust buttons
@@ -159,18 +158,18 @@ class SignupFrame(AppFrame):
             protocol.reverse_many_buttons((self._stop_button, self._signup_button))
 
         # Place objects
-        username_label.place(x=protocol.labels_x, y=20)
-        password_label.place(x=protocol.labels_x, y=220)
+        username_label.place(x=protocol.LABELS_X, y=20)
+        password_label.place(x=protocol.LABELS_X, y=220)
         self.show_fail()
         self.hide_fail()
-        email_label.place(x=protocol.labels_x, y=420)
-        self._username_text.place(x=protocol.labels_x, y=80)
-        self._password_text.place(x=protocol.labels_x, y=280)
-        self._email_text.place(x=protocol.labels_x, y=480)
-        self._start_button.place(x=protocol.buttons_x, y=80)
-        self._stop_button.place(x=protocol.buttons_x, y=230)
-        self._signup_button.place(x=protocol.buttons_x, y=380)
-        self._back_button.place(x=protocol.buttons_x, y=530)
+        email_label.place(x=protocol.LABELS_X, y=420)
+        self._username_text.place(x=protocol.LABELS_X, y=80)
+        self._password_text.place(x=protocol.LABELS_X, y=280)
+        self._email_text.place(x=protocol.LABELS_X, y=480)
+        self._start_button.place(x=protocol.BUTTONS_X, y=80)
+        self._stop_button.place(x=protocol.BUTTONS_X, y=230)
+        self._signup_button.place(x=protocol.BUTTONS_X, y=380)
+        self._back_button.place(x=protocol.BUTTONS_X, y=530)
 
     def on_click_start_gui(self):
         self.client_bl.on_click_start()
@@ -198,7 +197,7 @@ class SignupFrame(AppFrame):
         self.client_bl.send_data(json_data)
 
     def show_fail(self):
-        self._fail_label.place(x=protocol.labels_x, y=570)
+        self._fail_label.place(x=protocol.LABELS_X, y=600)
 
     def hide_fail(self):
         self._fail_label.place_forget()
@@ -210,20 +209,20 @@ class ForgotEmailFrame(AppFrame):
         super().__init__(client_bl, "Forgot password?")
 
         # Create objects
-        self.not_found_label = tk.Label(self, text="Account not found", font=protocol.font, fg='red')
-        self.enter_label = tk.Label(self, text="Enter email", font=protocol.font)
-        self.email_text = tk.Entry(self, width=int(protocol.text_width * 1.5), font=protocol.font)
-        self.enter_button = tk.Button(self, text="Enter", font=protocol.font, command=self.on_click_enter_gui)
-        self.back_button = tk.Button(self, text="Back", font=protocol.font,
+        self.not_found_label = tk.Label(self, text="Account not found", font=protocol.FONT, fg='red')
+        self.enter_label = tk.Label(self, text="Enter email", font=protocol.FONT)
+        self.email_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH * 1.5), font=protocol.FONT)
+        self.enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self.on_click_enter_gui)
+        self.back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                      command=lambda:self.app_master.show_frame(StartFrame))
 
         # Place objects
         self.show_not_found()
         self.hide_not_found()
-        self.enter_label.place(x=450, y=protocol.center_y - 100)
-        self.email_text.place(x=250, y=protocol.center_y)
-        self.enter_button.place(x=450, y=protocol.center_y + 100)
-        self.back_button.place(x=450, y=protocol.center_y + 250)
+        self.enter_label.place(x=450, y=protocol.CENTER_Y - 100)
+        self.email_text.place(x=250, y=protocol.CENTER_Y)
+        self.enter_button.place(x=450, y=protocol.CENTER_Y + 100)
+        self.back_button.place(x=450, y=protocol.CENTER_Y + 250)
 
     def on_click_enter_gui(self):
         log(f"Email: {self.email_text.get()}")
@@ -236,7 +235,7 @@ class ForgotEmailFrame(AppFrame):
         self.client_bl.send_data(json_data)
 
     def show_not_found(self):
-        self.not_found_label.place(x=450, y=protocol.center_y - 200)
+        self.not_found_label.place(x=450, y=protocol.CENTER_Y - 200)
 
     def hide_not_found(self):
         self.not_found_label.place_forget()
@@ -248,20 +247,20 @@ class ForgotCodeFrame(AppFrame):
         super().__init__(client_bl, "Forgot password?")
 
         # Create objects
-        self.wrong_label = tk.Label(self, text="Wrong code", font=protocol.font, fg='red')
-        self.enter_label = tk.Label(self, text="Enter code", font=protocol.font)
-        self.code_text = tk.Entry(self, width=int(protocol.text_width * 1.5), font=protocol.font)
-        self.enter_button = tk.Button(self, text="Enter", font=protocol.font, command=self.on_click_enter_gui)
-        self.back_button = tk.Button(self, text="Back", font=protocol.font,
+        self.wrong_label = tk.Label(self, text="Wrong code", font=protocol.FONT, fg='red')
+        self.enter_label = tk.Label(self, text="Enter code", font=protocol.FONT)
+        self.code_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH * 1.5), font=protocol.FONT)
+        self.enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self.on_click_enter_gui)
+        self.back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                      command=lambda:self.app_master.show_frame(StartFrame))
 
         # Place objects
         self.show_wrong()
         self.hide_wrong()
-        self.enter_label.place(x=450, y=protocol.center_y - 100)
-        self.code_text.place(x=250, y=protocol.center_y)
-        self.enter_button.place(x=450, y=protocol.center_y + 100)
-        self.back_button.place(x=450, y=protocol.center_y + 250)
+        self.enter_label.place(x=450, y=protocol.CENTER_Y - 100)
+        self.code_text.place(x=250, y=protocol.CENTER_Y)
+        self.enter_button.place(x=450, y=protocol.CENTER_Y + 100)
+        self.back_button.place(x=450, y=protocol.CENTER_Y + 250)
 
     def on_click_enter_gui(self):
         log(f"Code: {self.code_text.get()}")
@@ -274,7 +273,7 @@ class ForgotCodeFrame(AppFrame):
         self.client_bl.send_data(json_data)
 
     def show_wrong(self):
-        self.wrong_label.place(x=450, y=protocol.center_y - 200)
+        self.wrong_label.place(x=450, y=protocol.CENTER_Y - 200)
 
     def hide_wrong(self):
         self.wrong_label.place_forget()
@@ -286,14 +285,14 @@ class ForgotSetFrame(AppFrame):
         super().__init__(client_bl, "Forgot password?")
 
         # Create objects
-        self.password_label = tk.Label(self, text="Enter new password", font=protocol.font)
-        self.password_text = tk.Entry(self, width=protocol.text_width, font=protocol.font, show='•')
-        self.password_button = tk.Button(self, text="Enter", font=protocol.font, command=self.on_click_enter_gui)
+        self.password_label = tk.Label(self, text="Enter new password", font=protocol.FONT)
+        self.password_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
+        self.password_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self.on_click_enter_gui)
 
         # Place objects
-        self.password_label.place(x=450, y=protocol.center_y - 100)
-        self.password_text.place(x=450, y=protocol.center_y)
-        self.password_button.place(x=450, y=protocol.center_y + 100)
+        self.password_label.place(x=450, y=protocol.CENTER_Y - 100)
+        self.password_text.place(x=450, y=protocol.CENTER_Y)
+        self.password_button.place(x=450, y=protocol.CENTER_Y + 100)
 
     def on_click_enter_gui(self):
         # Make JSON
@@ -310,31 +309,31 @@ class MainFrame(AppFrame):
         super().__init__(client_bl, "Main Page")
 
         # Create objects
-        self._stop_button = tk.Button(self, text="Stop", font=protocol.font, command=self.on_click_stop_gui)
-        self._back_button = tk.Button(self, text="Back", font=protocol.font,
+        self._stop_button = tk.Button(self, text="Stop", font=protocol.FONT, command=self.on_click_stop_gui)
+        self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
-        self._convert_button = tk.Button(self, text="Convert!", font=protocol.font, command=self.on_click_convert_gui)
-        self._convert_from = tk.Label(self, text="Convert from", font=protocol.font)
-        self._convert_to = tk.Label(self, text="To", font=protocol.font)
-        self._amount = tk.Label(self, text="Amount", font=protocol.font)
-        self.result_label = tk.Label(self, text="", font=(protocol.font_name, int(1.5 * protocol.font_size)),
+        self._convert_button = tk.Button(self, text="Convert!", font=protocol.FONT, command=self.on_click_convert_gui)
+        self._convert_from = tk.Label(self, text="Convert from", font=protocol.FONT)
+        self._convert_to = tk.Label(self, text="To", font=protocol.FONT)
+        self._amount = tk.Label(self, text="Amount", font=protocol.FONT)
+        self.result_label = tk.Label(self, text="", font=(protocol.FONT_NAME, int(1.5 * protocol.FONT_SIZE)),
                                      fg='#27742C')
         self.show_result("")
         self.hide_result()
-        self.from_text = tk.Entry(self, width=protocol.currency_width, font=protocol.font)
-        self.to_text = tk.Entry(self, width=protocol.currency_width, font=protocol.font)
-        self.amount_text = tk.Entry(self, width=int(protocol.text_width / 2), font=protocol.font)
+        self.from_text = tk.Entry(self, width=protocol.CURRENCY_WIDTH, font=protocol.FONT)
+        self.to_text = tk.Entry(self, width=protocol.CURRENCY_WIDTH, font=protocol.FONT)
+        self.amount_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH / 2), font=protocol.FONT)
 
         # Place objects
-        self._stop_button.place(x=protocol.buttons_x, y=155)
-        self._back_button.place(x=protocol.buttons_x, y=305)
-        self._convert_button.place(x=protocol.buttons_x, y=455)
-        self._convert_from.place(x=protocol.labels_x, y=20)
-        self._convert_to.place(x=protocol.labels_x, y=220)
-        self._amount.place(x=protocol.labels_x, y=420)
-        self.from_text.place(x=protocol.labels_x, y=80)
-        self.to_text.place(x=protocol.labels_x, y=280)
-        self.amount_text.place(x=protocol.labels_x, y=480)
+        self._stop_button.place(x=protocol.BUTTONS_X, y=155)
+        self._back_button.place(x=protocol.BUTTONS_X, y=305)
+        self._convert_button.place(x=protocol.BUTTONS_X, y=455)
+        self._convert_from.place(x=protocol.LABELS_X, y=20)
+        self._convert_to.place(x=protocol.LABELS_X, y=220)
+        self._amount.place(x=protocol.LABELS_X, y=420)
+        self.from_text.place(x=protocol.LABELS_X, y=80)
+        self.to_text.place(x=protocol.LABELS_X, y=280)
+        self.amount_text.place(x=protocol.LABELS_X, y=480)
 
 
     def on_click_stop_gui(self):
@@ -357,10 +356,11 @@ class MainFrame(AppFrame):
 
     def show_result(self, text: str):
         self.result_label.config(text=text)
-        self.result_label.place(x=450, y=protocol.center_y)
+        self.result_label.place(x=450, y=protocol.CENTER_Y)
 
     def hide_result(self):
         self.result_label.place_forget()
+
 
 class ClientApp(tk.Tk):
     def __init__(self, client_bl):
@@ -373,7 +373,7 @@ class ClientApp(tk.Tk):
         self.listening = False
 
         # All these should be done here and not in frames
-        self.geometry(f"{protocol.width}x{protocol.height}")
+        self.geometry(f"{protocol.SCREEN_WIDTH}x{protocol.SCREEN_HEIGHT}")
         self._current_frame = None
         self.show_frame(StartFrame)
 
@@ -386,7 +386,8 @@ class ClientApp(tk.Tk):
     def listen(self):
         try:
             while True:
-                data = self.client_bl.socket.recv(1024).decode(protocol.json_format)
+                # Listen and proceed by instructions from server
+                data = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
                 if data == "SIGNUP":
                     log("Signup successful")
                     self.show_frame(MainFrame)
@@ -399,19 +400,19 @@ class ClientApp(tk.Tk):
                 elif data == "LOGINFAIL":
                     log("Login failed")
                     self._current_frame.show_fail()
-                elif data == "FORGOTEMAIL":
+                elif data == "FORGOTEMAIL": # Forgot password, passed stage 1
                     log("Forgot email successful")
                     self.show_frame(ForgotCodeFrame)
-                elif data == "FORGOTEMAILFAIL":
+                elif data == "FORGOTEMAILFAIL": # Forgot password, failed stage 1
                     log("Forgot email failed")
                     self._current_frame.show_not_found()
-                elif data == "FORGOTCODE":
+                elif data == "FORGOTCODE": # Forgot password, passed stage 2
                     log("Forgot code successful")
                     self.show_frame(ForgotSetFrame)
-                elif data == "FORGOTCODEFAIL":
+                elif data == "FORGOTCODEFAIL": # Forgot password, failed stage 2
                     log("Forgot code failed")
                     self._current_frame.show_wrong()
-                elif data == "FORGOTSETPASSWORD":
+                elif data == "FORGOTSETPASSWORD": # Forgot password, passed stage 3
                     log("Password reset")
                     self.show_frame(LoginFrame)
                 elif '=' in data:

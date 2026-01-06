@@ -1,15 +1,16 @@
 import protocol
 from protocol import log
 import socket
+from socket import socket
 
 
 class ClientBL:
     def __init__(self):
-        self.socket: socket = None
+        self.socket = None
 
     def on_click_start(self):
         # Login start button
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket: socket = socket(socket.AF_INET, socket.SOCK_STREAM)
         log("Client socket created")
         log("Start button clicked")
         self.socket.connect((protocol.SERVER_IP, protocol.PORT))
@@ -22,5 +23,5 @@ class ClientBL:
         log("Client socket closed")
 
     def send_data(self, data):
-        self.socket.sendall(data.encode(protocol.json_format))
+        self.socket.sendall(data.encode(protocol.ENCODE_FORMAT))
         log("Data sent to server")
