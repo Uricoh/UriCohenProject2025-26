@@ -3,6 +3,7 @@ from datetime import datetime
 import logging
 from pathlib import Path
 import tkinter as tk
+import sqlite3
 from typing import Final, Iterable
 from socket import socket
 from inspect import currentframe
@@ -33,9 +34,9 @@ CENTER_Y: Final[int] = 300
 SEC_CODE_LENGTH: Final[int] = 6
 BUFFER_SIZE: Final[int] = 1024
 ENCODE_FORMAT: Final[str] = 'utf-8'
-BG_PATH: Final[str] = "background.jpg"
-_LOG_PATH: Final[str] = "log.log"
-DB_NAME: Final[str] = "database.db"
+BG_PATH: Final[Path] = Path("background.jpg")
+_LOG_PATH: Final[Path] = Path("log.log")
+_DB_NAME: Final[Path] = Path("database.db")
 USER_TBL: Final[str] = "USERTBL" # Variable name is user_tbl because there may be more tables in the future
 APP_NAME: Final[str] = "Currency Converter"
 
@@ -89,6 +90,18 @@ def socket_alive(my_socket: socket) -> bool:
         except OSError:
             return False
 
+def connect_to_db() -> Iterable:
+    conn = sqlite3.connect(_DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {USER_TBL} (
+                                    id INTEGER PRIMARY KEY,
+                                    username TEXT NOT NULL,
+                                    password TEXT NOT NULL,
+                                    datetime TEXT NOT NULL)
+                                    ''')
+    log("SQL connection established")
+    return conn, cursor
+
 def get_hash(password: str) -> str:
     encoded_password = password.encode(ENCODE_FORMAT)
     password_hash = sha256(encoded_password).hexdigest()
@@ -123,15 +136,8 @@ def send_email(email_dest: str, subject: str, content: str) -> None:
 # Commands that should be executed at the start of each program
 
 # Clear log file if it exists
-
-# 1. Define clearer function
-def _clear_log():
-    log_file = Path(_LOG_PATH)
-    if log_file.exists():
-        log_file.write_text('') # Overwrites file with empty string
-
-# 2. Call clearer function
-_clear_log()
+if _LOG_PATH.exists():
+    _LOG_PATH.write_text('') # Overwrites file with empty string
 
 # Create logger, a logger is created each time protocol is imported, i.e. for each process, server and client
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=_LOG_PATH)

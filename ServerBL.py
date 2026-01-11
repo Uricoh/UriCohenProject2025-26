@@ -3,7 +3,6 @@ from protocol import log
 import threading
 import socket
 from ClientHandler import ClientHandler
-import dbprotocol
 
 
 class ServerBL:
@@ -36,8 +35,6 @@ class ServerBL:
 
     def on_click_stop(self):
         log("Stop button clicked")
-        # Close DB connection, only time when connection is closed and only use of import dbprotocol
-        dbprotocol.conn.close()
         log("DB connection closed")
         self._socket.close()
         log("Server closed")

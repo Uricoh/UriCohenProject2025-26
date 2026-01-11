@@ -1,4 +1,5 @@
 # Imports
+from abc import ABC
 from threading import Thread
 from ClientBL import ClientBL
 import protocol
@@ -8,7 +9,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from typing import cast
 
-class AppFrame(tk.Frame): # Frame template for the frames, they should inherit from here
+class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inherit from here
     def __init__(self, client_bl, title: str):
         # Call constructor and get BL
         super().__init__()

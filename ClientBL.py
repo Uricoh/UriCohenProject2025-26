@@ -1,7 +1,6 @@
 import protocol
 from protocol import log
 import socket
-from socket import socket
 
 
 class ClientBL:
@@ -10,7 +9,7 @@ class ClientBL:
 
     def on_click_start(self):
         # Login start button
-        self.socket: socket = socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         log("Client socket created")
         log("Start button clicked")
         self.socket.connect((protocol.SERVER_IP, protocol.PORT))

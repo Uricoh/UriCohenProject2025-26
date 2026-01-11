@@ -2,7 +2,6 @@ import json
 import protocol
 from protocol import log
 from secrets import randbelow
-import dbprotocol
 
 
 # One ClientHandler exists per client
@@ -15,6 +14,7 @@ class ClientHandler:
 
     def receive(self):
         # This method runs in a special thread, unique for each client, created by Thread A on ServerBL
+        conn, cursor = protocol.connect_to_db()
         try:
             while True:
                 data = self._client_socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
@@ -22,7 +22,7 @@ class ClientHandler:
                     user_data = json.loads(data)
 
                     if user_data[0] == "SIGNUP":
-                        username = dbprotocol.cursor.execute(f'''SELECT * FROM {protocol.USER_TBL} WHERE username = ?
+                        username = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL} WHERE username = ?
                         ''', (user_data[1], )).fetchone()
 
                         if username: # If username already exists
@@ -31,11 +31,11 @@ class ClientHandler:
 
                         else:
                             # Prevent SQL injection
-                            dbprotocol.cursor.execute(f'''INSERT INTO {protocol.USER_TBL}
-                                                    ("username", "password", "datetime", "email") VALUES (?, ?, ?, ?)'''
-                                                      , (user_data[1], user_data[2], protocol.get_time_as_text(),
-                                                         user_data[3]))
-                            dbprotocol.conn.commit()  # Commit after changing DB
+                            cursor.execute(f'''INSERT INTO {protocol.USER_TBL}
+                                                ("username", "password", "datetime", "email") VALUES (?, ?, ?, ?)'''
+                                                    , (user_data[1], user_data[2], protocol.get_time_as_text(),
+                                                        user_data[3]))
+                            conn.commit()  # Commit after changing DB
                             self._client_socket.sendall("SIGNUP".encode(protocol.ENCODE_FORMAT))
                             log(f"Data entered, Username: {user_data[1]}")
                             log(f"Data entered, Password (hash): {user_data[2][:5]}...")
@@ -43,7 +43,7 @@ class ClientHandler:
 
                     elif user_data[0] == "LOGIN":
                         # Prevent SQL injection
-                        result = dbprotocol.cursor.execute(
+                        result = cursor.execute(
                             f"SELECT * FROM {protocol.USER_TBL} WHERE username = ? AND password = ?",
                             (user_data[1], user_data[2])).fetchone()
                         # No need for commit because DB hasn't been changed
@@ -65,7 +65,7 @@ class ClientHandler:
                         log(f"Email logged, {self._email}")
 
                         # Search for account with the email
-                        result = dbprotocol.cursor.execute(
+                        result = cursor.execute(
                             f"SELECT * FROM {protocol.USER_TBL} WHERE email = ?",
                             (self._email,)).fetchone()
                         # No need for commit because DB hasn't been changed
@@ -101,10 +101,10 @@ class ClientHandler:
 
                     elif user_data[0] == "FORGOTSETPASSWORD":
                         # Forgot password, stage 3
-                        dbprotocol.cursor.execute(
+                        cursor.execute(
                             f"UPDATE {protocol.USER_TBL} SET password = ? WHERE email = ?", (user_data[1], self._email))
                         self._client_socket.sendall("FORGOTSETPASSWORD".encode(protocol.ENCODE_FORMAT))
-                        dbprotocol.conn.commit()
+                        conn.commit()
                         log("Password reset")
 
                     elif user_data[0] == "CONVERT":
@@ -116,3 +116,6 @@ class ClientHandler:
         except OSError:
             log("Client disconnected")
             self._client_socket.close()
+
+        finally:
+            conn.close()
