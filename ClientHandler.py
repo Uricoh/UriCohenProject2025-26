@@ -109,7 +109,18 @@ class ClientHandler:
 
                     elif user_data[0] == "CONVERT":
                         log("Server received convert message")
-                        result: str = f"{user_data[1]} {user_data[3]} ="
+
+                        # Data
+                        source = user_data[1]
+                        dest = user_data[2]
+                        amount = user_data[3]
+
+                        # Calculate
+                        rate = protocol.convert_currencies(amount, source, dest)
+                        if rate < 0:
+                            result: str = "Error"
+                        else:
+                            result: str = f"{amount} {source} = {round(rate, 2)} {dest}"
                         self._client_socket.sendall(result.encode(protocol.ENCODE_FORMAT))
                         log("Result message sent")
 
@@ -119,3 +130,4 @@ class ClientHandler:
 
         finally:
             conn.close()
+            log("DB connection closed")

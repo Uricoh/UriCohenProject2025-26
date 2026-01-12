@@ -357,7 +357,7 @@ class MainFrame(AppFrame):
 
     def show_result(self, text: str):
         self.result_label.config(text=text)
-        self.result_label.place(x=450, y=protocol.CENTER_Y)
+        self.result_label.place(x=350, y=protocol.CENTER_Y)
 
     def hide_result(self):
         self.result_label.place_forget()
@@ -416,7 +416,7 @@ class ClientApp(tk.Tk):
                 elif data == "FORGOTSETPASSWORD": # Forgot password, passed stage 3
                     log("Password reset")
                     self.show_frame(LoginFrame)
-                elif '=' in data:
+                elif '=' in data or data == "Error":
                     log("Result message received")
                     self._current_frame.show_result(data)
 

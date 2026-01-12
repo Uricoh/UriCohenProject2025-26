@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 import tkinter as tk
 import sqlite3
+import requests
 from typing import Final, Iterable
 from socket import socket
 from inspect import currentframe
@@ -25,7 +26,7 @@ SCREEN_WIDTH: Final[int] = 1500
 SCREEN_HEIGHT: Final[int] = 750
 FONT_NAME: Final[str] = 'Arial'
 FONT_SIZE: Final[int] = 32 # Best to make it a number that divides evenly by many other numbers
-FONT: Final[tuple] = (FONT_NAME, FONT_SIZE)
+FONT: Final[tuple[str, int]] = (FONT_NAME, FONT_SIZE)
 TEXT_WIDTH: Final[int] = 20 # Best to make it a number that divides evenly by many other numbers
 CURRENCY_WIDTH: Final[int] = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
 LABELS_X: Final[int] = 50 # Left
@@ -90,7 +91,7 @@ def socket_alive(my_socket: socket) -> bool:
         except OSError:
             return False
 
-def connect_to_db() -> Iterable:
+def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     conn = sqlite3.connect(_DB_NAME)
     cursor = conn.cursor()
     cursor.execute(f'''CREATE TABLE IF NOT EXISTS {USER_TBL} (
@@ -107,6 +108,33 @@ def get_hash(password: str) -> str:
     password_hash = sha256(encoded_password).hexdigest()
     log("Hash made")
     return password_hash
+
+def request_from_api() -> dict:
+    # Load .env file
+    load_dotenv()
+
+    # Get API key
+    api_key = getenv("API_KEY")
+
+    # Request data
+    url = f"https://openexchangerates.org/api/latest.json?app_id={api_key}"
+    response = requests.get(url)
+    log("Requested currency rates from API")
+
+    # Convert response to tuple
+    if response.status_code == 200: # 200 means success
+        json_response: dict = response.json() # Method response.json() returns dict, despite its name
+        return json_response
+    else:
+        raise OSError
+
+def convert_currencies(amount: float, source: str, dest: str) -> float:
+    try:
+        if source == 'USD': # USD is the base currency of the API (OpenExchangeRates.org)
+            return float(amount) * request_from_api()['rates'][dest]
+        return float(amount) * convert_currencies(1, 'USD', dest) / convert_currencies(1, 'USD', source)
+    except (ValueError, IndexError, TypeError, KeyError, OSError): # Signals something wrong with the input or the API
+        return -1
 
 def send_email(email_dest: str, subject: str, content: str) -> None:
     # Load .env file
