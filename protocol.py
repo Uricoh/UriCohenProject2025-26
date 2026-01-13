@@ -4,7 +4,6 @@ import logging
 from pathlib import Path
 import tkinter as tk
 import sqlite3
-import requests
 from typing import Final, Iterable
 from socket import socket
 from inspect import currentframe
@@ -35,6 +34,7 @@ CENTER_Y: Final[int] = 300
 SEC_CODE_LENGTH: Final[int] = 6
 BUFFER_SIZE: Final[int] = 1024
 ENCODE_FORMAT: Final[str] = 'utf-8'
+BASE_CURRENCY: Final[str] = "USD"
 BG_PATH: Final[Path] = Path("background.jpg")
 _LOG_PATH: Final[Path] = Path("log.log")
 _DB_NAME: Final[Path] = Path("database.db")
@@ -109,30 +109,11 @@ def get_hash(password: str) -> str:
     log("Hash made")
     return password_hash
 
-def request_from_api() -> dict:
-    # Load .env file
-    load_dotenv()
-
-    # Get API key
-    api_key = getenv("API_KEY")
-
-    # Request data
-    url = f"https://openexchangerates.org/api/latest.json?app_id={api_key}"
-    response = requests.get(url)
-    log("Requested currency rates from API")
-
-    # Convert response to tuple
-    if response.status_code == 200: # 200 means success
-        json_response: dict = response.json() # Method response.json() returns dict, despite its name
-        return json_response
-    else:
-        raise OSError
-
-def convert_currencies(amount: float, source: str, dest: str) -> float:
+def convert_currencies(rates: dict, amount: float, source: str, dest: str) -> float:
     try:
-        if source == 'USD': # USD is the base currency of the API (OpenExchangeRates.org)
-            return float(amount) * request_from_api()['rates'][dest]
-        return float(amount) * convert_currencies(1, 'USD', dest) / convert_currencies(1, 'USD', source)
+        if source == BASE_CURRENCY:
+            return float(amount) * rates['rates'][dest]
+        return float(amount) * convert_currencies(rates, 1, 'USD', dest) / convert_currencies(rates, 1, 'USD', source)
     except (ValueError, IndexError, TypeError, KeyError, OSError): # Signals something wrong with the input or the API
         return -1
 

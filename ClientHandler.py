@@ -6,8 +6,9 @@ from secrets import randbelow
 
 # One ClientHandler exists per client
 class ClientHandler:
-    def __init__(self, _client_socket):
+    def __init__(self, _client_socket, _currency_rates):
         self._client_socket = _client_socket
+        self._currency_rates = _currency_rates
         # self._email and self._code are used for resetting passwords
         self._email = None
         self._code = None
@@ -116,7 +117,7 @@ class ClientHandler:
                         amount = user_data[3]
 
                         # Calculate
-                        rate = protocol.convert_currencies(amount, source, dest)
+                        rate = protocol.convert_currencies(self._currency_rates, amount, source, dest)
                         if rate < 0:
                             result: str = "Error"
                         else:
