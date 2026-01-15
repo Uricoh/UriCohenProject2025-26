@@ -123,7 +123,7 @@ class ClientHandler:
                         else:
                             result: str = f"{amount} {source} = {round(rate, 2)} {dest}"
                         self._client_socket.sendall(result.encode(protocol.ENCODE_FORMAT))
-                        log("Result message sent")
+                        log(f"Result message sent: {result}")
 
         except OSError:
             log("Client disconnected")

@@ -34,7 +34,7 @@ CENTER_Y: Final[int] = 300
 SEC_CODE_LENGTH: Final[int] = 6
 BUFFER_SIZE: Final[int] = 1024
 ENCODE_FORMAT: Final[str] = 'utf-8'
-BASE_CURRENCY: Final[str] = "USD"
+BASE_CURRENCY: Final[str] = "USD" # Must be set to USD in free plan
 BG_PATH: Final[Path] = Path("background.jpg")
 _LOG_PATH: Final[Path] = Path("log.log")
 _DB_NAME: Final[Path] = Path("database.db")
@@ -113,7 +113,8 @@ def convert_currencies(rates: dict, amount: float, source: str, dest: str) -> fl
     try:
         if source == BASE_CURRENCY:
             return float(amount) * rates['rates'][dest]
-        return float(amount) * convert_currencies(rates, 1, 'USD', dest) / convert_currencies(rates, 1, 'USD', source)
+        rate = convert_currencies(rates, 1, BASE_CURRENCY, dest) / convert_currencies(rates, 1, BASE_CURRENCY, source)
+        return float(amount) * rate
     except (ValueError, IndexError, TypeError, KeyError, OSError): # Signals something wrong with the input or the API
         return -1
 
