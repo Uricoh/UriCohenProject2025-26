@@ -13,7 +13,6 @@ from email.message import EmailMessage
 from os import getenv
 from dotenv import load_dotenv
 
-
 # Network constants
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
 PORT: Final[int] = 8822
@@ -109,41 +108,10 @@ def get_hash(password: str) -> str:
     log("Hash made")
     return password_hash
 
-def convert_currencies(rates: dict, amount: float, source: str, dest: str) -> float:
-    try:
-        if source == BASE_CURRENCY:
-            return float(amount) * rates['rates'][dest]
-        rate = convert_currencies(rates, 1, BASE_CURRENCY, dest) / convert_currencies(rates, 1, BASE_CURRENCY, source)
-        return float(amount) * rate
-    except (ValueError, IndexError, TypeError, KeyError, OSError): # Signals something wrong with the input or the API
-        return -1
-
-def send_email(email_dest: str, subject: str, content: str) -> None:
-    # Load .env file
-    load_dotenv()
-
-    # Get login credentials
-    email_address = getenv("EMAIL_ADDRESS")
-    email_password = getenv("EMAIL_PASSWORD")
-
-    # Create the email
-    msg = EmailMessage()
-    msg["From"] = f"{APP_NAME} <{email_address}>"
-    msg["To"] = email_dest
-    msg["Subject"] = subject
-    msg.set_content(content)
-
-    # Connect to Gmail's SMTP server
-    smtp = SMTP_SSL("smtp.gmail.com", 465)
-    smtp.login(email_address, email_password)
-
-    # Send the email
-    smtp.send_message(msg)
-
-    # Close the connection
-    smtp.quit()
-
 # Commands that should be executed at the start of each program
+
+# Load .env file
+load_dotenv()
 
 # Clear log file if it exists
 if _LOG_PATH.exists():

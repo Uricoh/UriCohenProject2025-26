@@ -3,16 +3,16 @@ import protocol
 from protocol import log
 import threading
 import socket
-import requests
-from os import getenv
-from dotenv import load_dotenv
 from ClientHandler import ClientHandler
+from Converter import Converter
+from Emailer import Emailer
 
 
 class ServerBL:
     def __init__(self):
         self._socket = None
-        self._currency_rates = None
+        self._conv = None
+        self._emailer = None
 
     def on_click_start(self):
         # BLA - bind, listen, accept
@@ -26,43 +26,27 @@ class ServerBL:
         threading.Thread(target=self.accept, daemon=True).start()
         log("Accept thread started")
 
-        # Get currency rates
-        self._currency_rates = self.request_from_api()
+        # Create converter and emailer object
+        self._conv: Converter = Converter()
+        log("Converter object created")
+        self._emailer: Emailer = Emailer()
+        log("Emailer object created")
 
     def accept(self):
         # This runs in Thread A, not in main thread
         while True:
             try:
                 (client_socket, client_address) = self._socket.accept()
-                client_handler: ClientHandler = ClientHandler(client_socket, self._currency_rates)
+                client_handler: ClientHandler = ClientHandler(client_socket, self._conv, self._emailer)
                 threading.Thread(target=client_handler.receive, daemon=True).start()
                 log("ClientHandler created")
                 log(f"Client accepted, IP: {client_address}")
             except OSError:
                 pass
 
-    def request_from_api(self) -> dict:
-        # Load .env file
-        load_dotenv()
-
-        # Get API key
-        api_key = getenv("API_KEY")
-
-        # Request data
-        url = f"https://currencyapi.net/api/v1/rates?base={protocol.BASE_CURRENCY}&output=json&key={api_key}"
-        response = requests.get(url)
-        log("Received currency rates from API")
-
-        # Convert response to tuple
-        if response.status_code == 200:  # 200 means success
-            json_response: dict = response.json()  # Method response.json() returns dict, despite its name
-            log("Turned currency rates into dictionary")
-            return json_response
-        else:
-            raise OSError
-
     def on_click_stop(self):
         log("Stop button clicked")
         log("DB connection closed")
         self._socket.close()
+        self._emailer.close()
         log("Server closed")
