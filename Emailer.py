@@ -5,6 +5,7 @@ from email.message import EmailMessage
 from os import getenv
 
 class Emailer:
+    # One emailer for the entire server, same as converter
     def __init__(self):
         # Get login credentials
         self._email_address = getenv("EMAIL_ADDRESS")

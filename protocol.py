@@ -8,9 +8,6 @@ from typing import Final, Iterable
 from socket import socket
 from inspect import currentframe
 from hashlib import sha256
-from smtplib import SMTP_SSL
-from email.message import EmailMessage
-from os import getenv
 from dotenv import load_dotenv
 
 # Network constants
@@ -22,6 +19,7 @@ SERVER_IP: Final[str] = "127.0.0.1"
 # Other constants
 SCREEN_WIDTH: Final[int] = 1500
 SCREEN_HEIGHT: Final[int] = 750
+SCREEN_AREA: Final[tuple[int, int]] = (SCREEN_WIDTH, SCREEN_HEIGHT)
 FONT_NAME: Final[str] = 'Arial'
 FONT_SIZE: Final[int] = 32 # Best to make it a number that divides evenly by many other numbers
 FONT: Final[tuple[str, int]] = (FONT_NAME, FONT_SIZE)

@@ -7,17 +7,16 @@ class ClientBL:
     def __init__(self):
         self.socket = None
 
-    def on_click_start(self):
-        # Login start button
+    def on_open(self):
+        # When client window is open
+        log("Client opened")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         log("Client socket created")
-        log("Start button clicked")
         self.socket.connect((protocol.SERVER_IP, protocol.PORT))
         log("Client connected to server")
 
-    def on_click_stop(self):
-        # Both login and main stop buttons
-        log("Stop button clicked")
+    def on_close(self):
+        # When client window is closed
         self.socket.close()
         log("Client socket closed")
 

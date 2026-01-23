@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 
 class Converter:
+    # One converter for the entire server, same as emailer
     def __init__(self):
         # Get API key
         api_key = getenv("API_KEY")
@@ -22,7 +23,7 @@ class Converter:
             self._rates = json_response['rates']
             # Convert unix to datetime and then to string
             self.time = datetime.fromtimestamp(json_response['updated']).strftime("%Y-%m-%d %H:%M:%S")
-            log(f"Turned currency rates into dictionary, update time {self.time}")
+            log(f"Turned currency rates into dictionary, local update time {self.time}")
         else:
             raise OSError
 
