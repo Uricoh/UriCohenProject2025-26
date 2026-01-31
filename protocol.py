@@ -10,6 +10,7 @@ from inspect import currentframe
 from hashlib import sha256
 from dotenv import load_dotenv
 
+
 # Network constants
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
 PORT: Final[int] = 8822
@@ -35,7 +36,7 @@ BASE_CURRENCY: Final[str] = "USD" # Must be set to USD in free plan
 BG_PATH: Final[Path] = Path("background.jpg")
 _LOG_PATH: Final[Path] = Path("log.log")
 _DB_NAME: Final[Path] = Path("database.db")
-USER_TBL: Final[str] = "USERTBL" # Variable name is user_tbl because there may be more tables in the future
+USER_TBL_NAME: Final[str] = "USERTBL" # Variable name is USER_TBL_NAME because there may be more tables in the future
 APP_NAME: Final[str] = "Currency Converter"
 
 
@@ -44,18 +45,26 @@ APP_NAME: Final[str] = "Currency Converter"
 # IMPORTANT: Function doesn't work with inheritance: if Class A calls a method from Class B from which it inherits,
 # function will show A instead of B
 def log(message: str) -> None:
-    # Get class name
-    caller_frame = currentframe().f_back
-    caller_self = caller_frame.f_locals.get("self")
+    caller_frame = currentframe().f_back # Get caller frame object
+    class_name_object = caller_frame.f_locals.get("self") # Get class name if it exists
 
-    if caller_self:
-        module_or_class = caller_self.__class__.__name__.upper()
+    if class_name_object:
+        display_name = class_name_object.__class__.__name__.upper()
     else:
-        # If class doesn't exist, get module name instead
-        module_or_class = f"{caller_frame.f_globals.get('__name__').upper()}.py"
+        # Get __name__ variable. If __name__ is __main__, log() runs directly in the file, not as part of an import
+        module_name = caller_frame.f_globals.get('__name__')
+        if module_name == "__main__":
+            # If log() runs directly, display name is file name
+            display_name = Path(caller_frame.f_code.co_filename).stem # Get the name of the file that called log()
+        else:
+            # If log() runs as part of an import, display name is imported module name
+            display_name = module_name
+
+        # Configure display name format
+        display_name = f"{display_name.upper()}.py"
 
     # Log class/module and message
-    logging.info(f"[{module_or_class}] - {message}")
+    logging.info(f"[{display_name}] - {message}")
 
 def get_time_as_text() -> str:
     # Gets timestamp as string down to the microsecond
@@ -91,7 +100,7 @@ def socket_alive(my_socket: socket) -> bool:
 def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     conn = sqlite3.connect(_DB_NAME)
     cursor = conn.cursor()
-    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {USER_TBL} (
+    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {USER_TBL_NAME} (
                                     id INTEGER PRIMARY KEY,
                                     username TEXT NOT NULL,
                                     password TEXT NOT NULL,

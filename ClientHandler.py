@@ -24,7 +24,7 @@ class ClientHandler:
                     user_data = json.loads(data)
 
                     if user_data[0] == "SIGNUP":
-                        username = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL} WHERE username = ?
+                        username = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?
                         ''', (user_data[1], )).fetchone()
 
                         if username: # If username already exists
@@ -33,7 +33,7 @@ class ClientHandler:
 
                         else:
                             # Prevent SQL injection
-                            cursor.execute(f'''INSERT INTO {protocol.USER_TBL}
+                            cursor.execute(f'''INSERT INTO {protocol.USER_TBL_NAME}
                                                 ("username", "password", "datetime", "email") VALUES (?, ?, ?, ?)'''
                                                     , (user_data[1], user_data[2], protocol.get_time_as_text(),
                                                         user_data[3]))
@@ -46,7 +46,7 @@ class ClientHandler:
                     elif user_data[0] == "LOGIN":
                         # Prevent SQL injection
                         result = cursor.execute(
-                            f"SELECT * FROM {protocol.USER_TBL} WHERE username = ? AND password = ?",
+                            f"SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ? AND password = ?",
                             (user_data[1], user_data[2])).fetchone()
                         # No need for commit because DB hasn't been changed
 
@@ -68,7 +68,7 @@ class ClientHandler:
 
                         # Search for account with the email
                         result = cursor.execute(
-                            f"SELECT * FROM {protocol.USER_TBL} WHERE email = ?",
+                            f"SELECT * FROM {protocol.USER_TBL_NAME} WHERE email = ?",
                             (self._email,)).fetchone()
                         # No need for commit because DB hasn't been changed
 
@@ -104,7 +104,7 @@ class ClientHandler:
                     elif user_data[0] == "FORGOTSETPASSWORD":
                         # Forgot password, stage 3
                         cursor.execute(
-                            f"UPDATE {protocol.USER_TBL} SET password = ? WHERE email = ?", (user_data[1], self._email))
+                            f"UPDATE {protocol.USER_TBL_NAME} SET password = ? WHERE email = ?", (user_data[1], self._email))
                         self._client_socket.sendall("FORGOTSETPASSWORD".encode(protocol.ENCODE_FORMAT))
                         conn.commit()
                         log("Password reset")

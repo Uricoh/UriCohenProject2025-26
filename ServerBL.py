@@ -28,9 +28,9 @@ class ServerBL:
 
         # Create converter and emailer object
         self._conv: Converter = Converter()
-        log("Converter object created")
+        log("Converter object creation complete")
         self._emailer: Emailer = Emailer()
-        log("Emailer object created")
+        log("Emailer object creation complete")
 
     def accept(self):
         # This runs in Thread A, not in main thread

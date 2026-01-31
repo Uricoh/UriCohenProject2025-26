@@ -1,4 +1,6 @@
 import tkinter as tk
+
+import protocol
 from ServerBL import *
 from tkinter import PhotoImage
 from PIL import Image, ImageTk
@@ -15,11 +17,11 @@ class ServerGUI:
         self._root.geometry(f"{protocol.SCREEN_WIDTH}x{protocol.SCREEN_HEIGHT}")
 
         # Show background image
-        bg_image = Image.open(protocol.BG_PATH)
-        bg_reimage = bg_image.resize((protocol.SCREEN_WIDTH, protocol.SCREEN_HEIGHT))
-        self.bg_pimage: PhotoImage = ImageTk.PhotoImage(bg_reimage)
-        self.bg_label = tk.Label(self._root, image=self.bg_pimage)
-        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        _bg_image = Image.open(protocol.BG_PATH)
+        _bg_reimage = _bg_image.resize(protocol.SCREEN_AREA)
+        self._bg_pimage: PhotoImage = ImageTk.PhotoImage(_bg_reimage)
+        self._bg_label = tk.Label(self._root, image=self._bg_pimage)
+        self._bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Create label
         self._server_label = tk.Label(self._root, text="Server", font=(protocol.FONT_NAME, 2 * protocol.FONT_SIZE),
