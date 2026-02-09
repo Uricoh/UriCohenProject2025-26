@@ -1,6 +1,4 @@
 import tkinter as tk
-
-import protocol
 from ServerBL import *
 from tkinter import PhotoImage
 from PIL import Image, ImageTk
@@ -28,20 +26,22 @@ class ServerGUI:
                                       bg='yellow')
 
         # Create buttons
-        self._start_button = tk.Button(self._root, text="Start", font=protocol.FONT, command=self.on_click_start_gui)
-        self._stop_button = tk.Button(self._root, text="Stop", font=protocol.FONT, command=self.on_click_stop_gui)
+        self._start_button = tk.Button(self._root, text="Start", font=protocol.FONT, command=self._on_click_start_gui)
+        self._stop_button = tk.Button(self._root, text="Stop", font=protocol.FONT, command=self._on_click_stop_gui)
         protocol.reverse_button(self._stop_button)
 
-        # Place objects
+        self._place_objects()
+
+    def _place_objects(self):
         self._server_label.place(x=3 * protocol.LABELS_X, y=100)
         self._start_button.place(x=protocol.BUTTONS_X, y=80)
         self._stop_button.place(x=protocol.BUTTONS_X, y=230)
 
-    def on_click_start_gui(self):
+    def _on_click_start_gui(self):
         protocol.reverse_many_buttons((self._start_button, self._stop_button))
         self.server_bl.on_click_start()
 
-    def on_click_stop_gui(self):
+    def _on_click_stop_gui(self):
         protocol.reverse_many_buttons((self._start_button, self._stop_button))
         self.server_bl.on_click_stop()
 

@@ -12,7 +12,7 @@ class ClientBL:
         log("Client opened")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         log("Client socket created")
-        self.socket.connect((protocol.SERVER_IP, protocol.PORT))
+        self.socket.connect(protocol.SERVER_ADDRESS)
         log("Client connected to server")
 
     def on_close(self):

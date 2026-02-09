@@ -19,7 +19,7 @@ class ServerBL:
         log("Start button clicked")
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         log("Socket created")
-        self._socket.bind((protocol.SERVER_IP, protocol.PORT))
+        self._socket.bind(protocol.SERVER_ADDRESS)
         log("Socket bound")
         self._socket.listen(5)
         log("Socket listening")

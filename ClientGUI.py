@@ -293,10 +293,19 @@ class MainFrame(AppFrame):
         # Constructor
         super().__init__(client_bl, "Main Page")
 
+        # Create reverse image
+        switch_image = Image.open('switch.png')
+        switch_reimage = switch_image.resize((75, 75))
+        self._switch_pimage: tk.PhotoImage = ImageTk.PhotoImage(switch_reimage)
+
         # Create objects
+        self._switch_button = tk.Button(self, image=self._switch_pimage, command=self._on_click_switch)
+        self._convert_button = tk.Button(self, text="Convert!", font=protocol.FONT, command=self._on_click_convert)
+        protocol.color_button_text(self._convert_button, "#c04000")
+        self._history_button = tk.Button(self, text="History", font=protocol.FONT,
+                                         command=lambda:self.app_master.show_frame(HistoryFrame))
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
-        self._convert_button = tk.Button(self, text="Convert!", font=protocol.FONT, command=self.on_click_convert)
         self._convert_from = tk.Label(self, text="Convert from", font=protocol.FONT)
         self._convert_to = tk.Label(self, text="To", font=protocol.FONT)
         self._amount = tk.Label(self, text="Amount", font=protocol.FONT)
@@ -313,8 +322,10 @@ class MainFrame(AppFrame):
 
     def _place_objects(self):
         self._hello_label.place(x=520, y=20)
-        self._back_button.place(x=protocol.BUTTONS_X, y=155)
-        self._convert_button.place(x=protocol.BUTTONS_X, y=305)
+        self._switch_button.place(x=340, y=170)
+        self._convert_button.place(x=protocol.BUTTONS_X, y=155)
+        self._history_button.place(x=protocol.BUTTONS_X, y=305)
+        self._back_button.place(x=protocol.BUTTONS_X, y=455)
         self._convert_from.place(x=protocol.LABELS_X, y=20)
         self._convert_to.place(x=protocol.LABELS_X, y=220)
         self._amount.place(x=protocol.LABELS_X, y=420)
@@ -322,7 +333,13 @@ class MainFrame(AppFrame):
         self._to_text.place(x=protocol.LABELS_X, y=280)
         self._amount_text.place(x=protocol.LABELS_X, y=480)
 
-    def on_click_convert(self):
+    def _on_click_switch(self):
+        old_from = self._from_text.get()
+        protocol.put_text_in_button(self._from_text, self._to_text.get())
+        protocol.put_text_in_button(self._to_text, old_from)
+        log(f"Currencies switched, now {self._from_text.get()} to {self._to_text.get()}")
+
+    def _on_click_convert(self):
         log("Conversion process started")
         log(f"From {self._from_text.get()}")
         log(f"To {self._to_text.get()}")
@@ -342,6 +359,23 @@ class MainFrame(AppFrame):
 
     def hide_result(self):
         self._result_label.place_forget()
+
+
+class HistoryFrame(AppFrame):
+    def __init__(self, client_bl):
+        # Constructor
+        super().__init__(client_bl, "History")
+
+        # Create objects
+        self._history_label = tk.Label(self, text="History", font=(protocol.FONT_NAME, int(1.75 * protocol.FONT_SIZE)))
+        self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
+                                      command=lambda:self.app_master.show_frame(MainFrame))
+
+        self._place_objects()
+
+    def _place_objects(self):
+        self._back_button.place(x=protocol.BUTTONS_X, y=455)
+        self._history_label.place(x=protocol.LABELS_X, y=int(0.75 * protocol.LABELS_X))
 
 
 class ClientApp(tk.Tk):

@@ -31,13 +31,13 @@ class Converter:
         self._rates: dict = {}
         self._time: str = ''
         if self._status_code == 200: # 200 means success
-            json_response: dict = response.json()  # Method response.json() returns dict, despite its name
+            json_response: dict = response.json() # Method response.json() returns dict, despite its name
             self._rates = json_response['rates']
             # Convert unix to datetime and then to string
             self._time = datetime.fromtimestamp(json_response['updated']).strftime("%Y-%m-%d %H:%M:%S")
             log(f"Turned currency rates into dictionary, local update time {self._time}")
         else:
-            raise OSError
+            raise OSError(f"{self._status_code}, see https://currencyapi.net/documentation/error-codes/ for details")
 
     def convert_currencies(self, amount: float, source: str, dest: str) -> float:
         try:

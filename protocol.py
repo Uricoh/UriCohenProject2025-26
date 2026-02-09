@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 PORT: Final[int] = 8822
 # Means this computer, change to current server IP address to connect to server based in another computer
 SERVER_IP: Final[str] = "127.0.0.1"
+SERVER_ADDRESS: Final[tuple[str, int]] = (SERVER_IP, PORT)
 
 # Other constants
 SCREEN_WIDTH: Final[int] = 1500
@@ -74,13 +75,16 @@ def get_time_as_text() -> str:
     formatted_datetime_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
     return formatted_datetime_string
 
+def color_button_text(button: tk.Button, color: str) -> None:
+    button.config(fg=color, activeforeground=color)
+
 def reverse_button(button: tk.Button) -> None:
     if button['state'] == tk.DISABLED:
         button['state'] = tk.NORMAL
     else:
         button['state'] = tk.DISABLED
 
-def reverse_many_buttons(buttons: Iterable | tk.Button) -> None:
+def reverse_many_buttons(buttons: Iterable[tk.Button]) -> None:
     for button in buttons:
         reverse_button(button)
 
@@ -108,6 +112,10 @@ def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
                                     ''')
     log("SQL connection established")
     return conn, cursor
+
+def put_text_in_button(button: tk.Entry, text: str):
+    button.delete(0, "end")
+    button.insert(0, text)
 
 def get_hash(password: str) -> str:
     encoded_password = password.encode(ENCODE_FORMAT)
