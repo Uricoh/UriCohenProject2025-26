@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 # Network constants
 # Port commonly used in school, computer firewalls are configured for it so don't change without good reason
 PORT: Final[int] = 8822
-# Means this computer, change to current server IP address to connect to server based in another computer
-SERVER_IP: Final[str] = "127.0.0.1"
+# Means this computer, change on BOTH server and client to server IP in order to connect different devices
+SERVER_IP: Final[str] = "172.16.5.22"
 SERVER_ADDRESS: Final[tuple[str, int]] = (SERVER_IP, PORT)
 
 # Other constants

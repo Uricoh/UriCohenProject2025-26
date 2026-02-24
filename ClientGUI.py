@@ -20,15 +20,15 @@ class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inhe
         self.app_master: ClientApp = cast(ClientApp, self.master)
         self.app_master.title(f"{protocol.APP_NAME} - {title}")
 
-        # Show background image
-        bg_image = Image.open(protocol.BG_PATH)
-        bg_reimage = bg_image.resize(protocol.SCREEN_AREA)
-        self._bg_pimage: tk.PhotoImage = ImageTk.PhotoImage(bg_reimage)
-
         # Log socket ID if one exists
         if protocol.socket_alive(self.client_bl.socket):
             log(f"Socket ID: {id(self.client_bl.socket)}")
             # Compare this ID with ID in other frames
+
+        # Create background image
+        bg_image = Image.open(protocol.BG_PATH)
+        bg_reimage = bg_image.resize(protocol.SCREEN_AREA)
+        self._bg_pimage: tk.PhotoImage = ImageTk.PhotoImage(bg_reimage)
 
         # Canvas
         self._canvas = tk.Canvas(self, width=protocol.SCREEN_WIDTH, height=protocol.SCREEN_HEIGHT)

@@ -82,7 +82,7 @@ class ClientHandler:
 
                     # Generate verification code
                     self._code = f"{randbelow(10 ** protocol.SEC_CODE_LENGTH)}"
-                    while len(self._code) < 6:
+                    while len(self._code) < protocol.SEC_CODE_LENGTH:
                         self._code = "0" + self._code
 
                     # Create email message without exceeding 120-char best practice
