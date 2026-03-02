@@ -1,47 +1,23 @@
 # Imports
+from os import getenv
 from datetime import datetime
 import logging
 from pathlib import Path
 import tkinter as tk
+from tkinter import ttk, PhotoImage
+from PIL import Image, ImageTk
 import sqlite3
 from typing import Final, Iterable
+from types import FunctionType
 from socket import socket
 from inspect import currentframe
 from hashlib import sha256
 from dotenv import load_dotenv
+from currencies import currencies
 
-
-# Network constants
-# Port commonly used in school, computer firewalls are configured for it so don't change without good reason
-PORT: Final[int] = 8822
-# Means this computer, change on BOTH server and client to server IP in order to connect different devices
-SERVER_IP: Final[str] = "172.16.5.22"
-SERVER_ADDRESS: Final[tuple[str, int]] = (SERVER_IP, PORT)
-
-# Other constants
-SCREEN_WIDTH: Final[int] = 1500
-SCREEN_HEIGHT: Final[int] = 750
-SCREEN_AREA: Final[tuple[int, int]] = (SCREEN_WIDTH, SCREEN_HEIGHT)
-FONT_NAME: Final[str] = 'Arial'
-FONT_SIZE: Final[int] = 32 # Best to make it a number that divides evenly by many other numbers
-FONT: Final[tuple[str, int]] = (FONT_NAME, FONT_SIZE)
-TEXT_WIDTH: Final[int] = 20 # Best to make it a number that divides evenly by many other numbers
-CURRENCY_WIDTH: Final[int] = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
-LABELS_X: Final[int] = 50 # Left
-BUTTONS_X: Final[int] = 1000 # Right
-CENTER_Y: Final[int] = 300
-SEC_CODE_LENGTH: Final[int] = 6
-BUFFER_SIZE: Final[int] = 1024
-TABLE_CAPACITY: Final[int] = 13 # Works for current table size and resolution, change constant if changing those
-TABLE_HEADERS: Final[list[str]] = ["Source", "Dest", "Value", "Result"]
-ENCODE_FORMAT: Final[str] = 'utf-8'
-BASE_CURRENCY: Final[str] = "USD" # Must be set to USD in free plan
-BG_PATH: Final[Path] = Path("background.jpg")
-_LOG_PATH: Final[Path] = Path("log.log")
-_DB_NAME: Final[Path] = Path("database.db")
-USER_TBL_NAME: Final[str] = "USERTBL" # Variable name is USER_TBL_NAME because there may be more tables in the future
-APP_NAME: Final[str] = "Currency Converter"
-
+# This command MUST appear on top in order to load some constants
+# Load .env file
+load_dotenv()
 
 # Functions
 
@@ -79,6 +55,26 @@ def get_time_as_text() -> str:
 
 def color_button_text(button: tk.Button, color: str) -> None:
     button.config(fg=color, activeforeground=color)
+
+def create_table(root: tk.Tk, headers: tuple, values: list[tuple]) -> ttk.Treeview:
+    table = ttk.Treeview(root, columns=headers, show="headings")
+
+    # Configure columns
+    for col in headers:
+        table.heading(col, text=col)
+        table.column(col, width=100, anchor="center")
+
+    # Insert data rows
+    for row in values:
+        table.insert("", "end", values=row)
+
+    return table
+
+def create_image(image_path: str | Path, area: tuple[int, int]) -> PhotoImage:
+    image = Image.open(image_path)
+    reimage = image.resize(area)
+    pimage: PhotoImage = ImageTk.PhotoImage(reimage)
+    return pimage
 
 def reverse_button(button: tk.Button) -> None:
     if button['state'] == tk.DISABLED:
@@ -125,10 +121,43 @@ def get_hash(password: str) -> str:
     log("Hash made")
     return password_hash
 
-# Commands that should be executed at the start of each program
+# Constants
 
-# Load .env file
-load_dotenv()
+# Network constants
+# Port commonly used in school, computer firewalls are configured for it so don't change without good reason
+PORT: Final[int] = 8822
+# Means this computer, change on BOTH server and client to server IP in order to connect different devices
+SERVER_IP: Final[str] = getenv("SERVER_IP") # Saved in .env file to protect privacy
+SERVER_ADDRESS: Final[tuple[str, int]] = (SERVER_IP, PORT)
+
+# Other constants
+SCREEN_WIDTH: Final[int] = 1500
+SCREEN_HEIGHT: Final[int] = 750
+SCREEN_AREA: Final[tuple[int, int]] = (SCREEN_WIDTH, SCREEN_HEIGHT)
+FONT_NAME: Final[str] = 'Arial'
+FONT_SIZE: Final[int] = 32 # Best to make it a number that divides evenly by many other numbers
+FONT: Final[tuple[str, int]] = (FONT_NAME, FONT_SIZE)
+TEXT_WIDTH: Final[int] = 20 # Best to make it a number that divides evenly by many other numbers
+CURRENCY_WIDTH: Final[int] = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
+LEFT_X: Final[int] = 50 # Left
+RIGHT_X: Final[int] = 1000 # Right
+CENTER_Y: Final[int] = 300
+SEC_CODE_LENGTH: Final[int] = 6
+BUFFER_SIZE: Final[int] = 1024
+CURRENCY_TBL_CAPACITY: Final[int] = 13 # Works for current table size and resolution, change constant if changing those
+CURRENCY_TBL_HEADERS: Final[tuple[str, str, str, str]] = ("Source", "Dest", "Value", "Result")
+SERVER_TBL_HEADERS: Final[tuple[str, str, str]] = ("Client IP", "Port", "Time")
+ENCODE_FORMAT: Final[str] = 'utf-8'
+BASE_CURRENCY: Final[str] = "USD" # Must be set to USD in free plan
+BG_PATH: Final[Path] = Path("background.jpg")
+SWITCH_PATH: Final[Path] = Path("switch.png")
+_LOG_PATH: Final[Path] = Path("log.log")
+_DB_NAME: Final[Path] = Path("database.db")
+USER_TBL_NAME: Final[str] = "USERTBL" # Variable name is USER_TBL_NAME because there may be more tables in the future
+APP_NAME: Final[str] = "Currency Converter"
+CURRENCIES: Final[list[str]] = currencies
+
+# Commands that should be executed at the start of each program
 
 # Clear log file if it exists
 if _LOG_PATH.exists():

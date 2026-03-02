@@ -6,7 +6,9 @@ from secrets import randbelow
 
 # One ClientHandler exists per client
 class ClientHandler:
-    def __init__(self, _client_socket, _conv, _emailer):
+    def __init__(self, _client_ip, _client_list, _client_socket, _conv, _emailer):
+        self._client_ip = _client_ip
+        self._client_list = _client_list
         self._client_socket = _client_socket
         self._conv = _conv
         self._emailer = _emailer
@@ -130,6 +132,14 @@ class ClientHandler:
 
             except OSError:
                 log("Client disconnected")
+
+                # Remove client from client list
+                for client in self._client_list.copy():
+                    if self._client_ip in client:
+                        self._client_list.remove(client)
+                        log("Stopped client removed from list")
+                        break # Only one connection may exist per IP address
+
                 self._client_socket.close()
                 conn.close()
                 log("DB connection closed")

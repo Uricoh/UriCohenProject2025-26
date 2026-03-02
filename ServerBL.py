@@ -10,6 +10,7 @@ from Emailer import Emailer
 
 class ServerBL:
     def __init__(self):
+        self.client_list = []
         self._socket = None
         self._conv = None
         self._emailer = None
@@ -37,7 +38,9 @@ class ServerBL:
         while True:
             try:
                 (client_socket, client_address) = self._socket.accept()
-                client_handler: ClientHandler = ClientHandler(client_socket, self._conv, self._emailer)
+                self.client_list.append((client_address[0], client_address[1], protocol.get_time_as_text()))
+                client_handler: ClientHandler = ClientHandler(client_address[0], self.client_list, client_socket,
+                                                              self._conv, self._emailer)
                 threading.Thread(target=client_handler.receive, daemon=True).start()
                 log("ClientHandler created")
                 log(f"Client accepted, IP: {client_address}")

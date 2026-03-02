@@ -4,10 +4,9 @@ from ClientBL import ClientBL
 import protocol
 from protocol import log
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, PhotoImage
 from threading import Thread
 import json
-from PIL import Image, ImageTk
 from typing import cast
 
 class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inherit from here
@@ -26,9 +25,7 @@ class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inhe
             # Compare this ID with ID in other frames
 
         # Create background image
-        bg_image = Image.open(protocol.BG_PATH)
-        bg_reimage = bg_image.resize(protocol.SCREEN_AREA)
-        self._bg_pimage: tk.PhotoImage = ImageTk.PhotoImage(bg_reimage)
+        self._bg_pimage: PhotoImage = protocol.create_image(protocol.BG_PATH, protocol.SCREEN_AREA)
 
         # Canvas
         self._canvas = tk.Canvas(self, width=protocol.SCREEN_WIDTH, height=protocol.SCREEN_HEIGHT)
@@ -66,9 +63,9 @@ class StartFrame(AppFrame):
         self._place_objects()
 
     def _place_objects(self):
-        self._signup_button.place(x=protocol.BUTTONS_X, y=80)
-        self._login_button.place(x=protocol.BUTTONS_X, y=230)
-        self._guest_button.place(x=protocol.BUTTONS_X, y=380)
+        self._signup_button.place(x=protocol.RIGHT_X, y=80)
+        self._login_button.place(x=protocol.RIGHT_X, y=230)
+        self._guest_button.place(x=protocol.RIGHT_X, y=380)
 
     def on_click_guest(self):
         self.app_master.username = "Guest"
@@ -99,17 +96,17 @@ class LoginFrame(AppFrame):
         self._place_objects()
 
     def _place_objects(self):
-        self._username_label.place(x=protocol.LABELS_X, y=20)
-        self._password_label.place(x=protocol.LABELS_X, y=220)
+        self._username_label.place(x=protocol.LEFT_X, y=20)
+        self._password_label.place(x=protocol.LEFT_X, y=220)
         self.show_fail()
         self.hide_fail()
-        self._username_text.place(x=protocol.LABELS_X, y=80)
-        self._password_text.place(x=protocol.LABELS_X, y=280)
+        self._username_text.place(x=protocol.LEFT_X, y=80)
+        self._password_text.place(x=protocol.LEFT_X, y=280)
 
         # The forgot password button is intentionally placed with the labels, rather than with the buttons
-        self._forgot_button.place(x=protocol.LABELS_X, y=420)
-        self._login_button.place(x=protocol.BUTTONS_X, y=80)
-        self._back_button.place(x=protocol.BUTTONS_X, y=230)
+        self._forgot_button.place(x=protocol.LEFT_X, y=420)
+        self._login_button.place(x=protocol.RIGHT_X, y=80)
+        self._back_button.place(x=protocol.RIGHT_X, y=230)
 
     def _on_click_login(self):
         # Save username
@@ -128,7 +125,7 @@ class LoginFrame(AppFrame):
         self.client_bl.send_data(json_data)
 
     def show_fail(self):
-        self._fail_label.place(x=protocol.LABELS_X, y=580)
+        self._fail_label.place(x=protocol.LEFT_X, y=580)
 
     def hide_fail(self):
         self._fail_label.place_forget()
@@ -158,16 +155,16 @@ class SignupFrame(AppFrame):
         self._place_objects()
 
     def _place_objects(self):
-        self._username_label.place(x=protocol.LABELS_X, y=20)
-        self._password_label.place(x=protocol.LABELS_X, y=220)
+        self._username_label.place(x=protocol.LEFT_X, y=20)
+        self._password_label.place(x=protocol.LEFT_X, y=220)
         self.show_fail()
         self.hide_fail()
-        self._email_label.place(x=protocol.LABELS_X, y=420)
-        self._username_text.place(x=protocol.LABELS_X, y=80)
-        self._password_text.place(x=protocol.LABELS_X, y=280)
-        self._email_text.place(x=protocol.LABELS_X, y=480)
-        self._signup_button.place(x=protocol.BUTTONS_X, y=80)
-        self._back_button.place(x=protocol.BUTTONS_X, y=230)
+        self._email_label.place(x=protocol.LEFT_X, y=420)
+        self._username_text.place(x=protocol.LEFT_X, y=80)
+        self._password_text.place(x=protocol.LEFT_X, y=280)
+        self._email_text.place(x=protocol.LEFT_X, y=480)
+        self._signup_button.place(x=protocol.RIGHT_X, y=80)
+        self._back_button.place(x=protocol.RIGHT_X, y=230)
 
     def _on_click_signup(self):
         # Save username
@@ -188,7 +185,7 @@ class SignupFrame(AppFrame):
         self.client_bl.send_data(json_data)
 
     def show_fail(self):
-        self._fail_label.place(x=protocol.LABELS_X, y=600)
+        self._fail_label.place(x=protocol.LEFT_X, y=600)
 
     def hide_fail(self):
         self._fail_label.place_forget()
@@ -306,9 +303,7 @@ class MainFrame(AppFrame):
         super().__init__(client_bl, "Main Page")
 
         # Create reverse image
-        switch_image = Image.open('switch.png')
-        switch_reimage = switch_image.resize((75, 75))
-        self._switch_pimage: tk.PhotoImage = ImageTk.PhotoImage(switch_reimage)
+        self._switch_pimage: PhotoImage = protocol.create_image(protocol.SWITCH_PATH, protocol.SCREEN_AREA)
 
         # Create objects
         self._switch_button = tk.Button(self, image=self._switch_pimage, command=self._on_click_switch)
@@ -322,52 +317,56 @@ class MainFrame(AppFrame):
         self._convert_to = tk.Label(self, text="To", font=protocol.FONT)
         self._amount = tk.Label(self, text="Amount", font=protocol.FONT)
         self._hello_label = tk.Label(self, text=f"Hello, {self.app_master.username}", font=protocol.FONT, fg='#008000')
-        self._result_label = tk.Label(self, text="", font=(protocol.FONT_NAME, int(1.5 * protocol.FONT_SIZE)),
+        self._result_label = tk.Label(self, text="", font=(protocol.FONT_NAME, int(1.2 * protocol.FONT_SIZE)),
                                       fg='#27742C')
-        self.show_result("")
+        self.show_result()
         self.hide_result()
-        self._from_text = tk.Entry(self, width=protocol.CURRENCY_WIDTH, font=protocol.FONT)
-        self._to_text = tk.Entry(self, width=protocol.CURRENCY_WIDTH, font=protocol.FONT)
-        self._amount_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH / 2), font=protocol.FONT)
+        self._from_combobox = ttk.Combobox(self, values=protocol.CURRENCIES,
+                                           font=(protocol.FONT_NAME, int(0.75 * protocol.FONT_SIZE)), state="normal")
+        self._to_combobox = ttk.Combobox(self, values=protocol.CURRENCIES,
+                                         font=(protocol.FONT_NAME, int(0.75 * protocol.FONT_SIZE)), state="normal")
+        self._amount_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH / 2),
+                                     font=(protocol.FONT_NAME, int(0.75 * protocol.FONT_SIZE)))
 
         self._place_objects()
 
     def _place_objects(self):
         self._hello_label.place(x=520, y=20)
         self._switch_button.place(x=340, y=170)
-        self._convert_button.place(x=protocol.BUTTONS_X, y=155)
-        self._history_button.place(x=protocol.BUTTONS_X, y=305)
-        self._back_button.place(x=protocol.BUTTONS_X, y=455)
-        self._convert_from.place(x=protocol.LABELS_X, y=20)
-        self._convert_to.place(x=protocol.LABELS_X, y=220)
-        self._amount.place(x=protocol.LABELS_X, y=420)
-        self._from_text.place(x=protocol.LABELS_X, y=80)
-        self._to_text.place(x=protocol.LABELS_X, y=280)
-        self._amount_text.place(x=protocol.LABELS_X, y=480)
+        self._convert_button.place(x=protocol.RIGHT_X, y=155)
+        self._history_button.place(x=protocol.RIGHT_X, y=305)
+        self._back_button.place(x=protocol.RIGHT_X, y=455)
+        self._convert_from.place(x=protocol.LEFT_X, y=20)
+        self._convert_to.place(x=protocol.LEFT_X, y=220)
+        self._amount.place(x=protocol.LEFT_X, y=420)
+        self._from_combobox.place(x=protocol.LEFT_X, y=80)
+        self._to_combobox.place(x=protocol.LEFT_X, y=280)
+        self._amount_text.place(x=protocol.LEFT_X, y=480)
 
     def _on_click_switch(self):
-        old_from = self._from_text.get()
-        protocol.put_text_in_button(self._from_text, self._to_text.get())
-        protocol.put_text_in_button(self._to_text, old_from)
-        log(f"Currencies switched, now {self._from_text.get()} to {self._to_text.get()}")
+        old_from = self._from_combobox.get()
+        protocol.put_text_in_button(self._from_combobox, self._to_combobox.get())
+        protocol.put_text_in_button(self._to_combobox, old_from)
+        log(f"Currencies switched, now {self._from_combobox.get()} to {self._to_combobox.get()}")
 
     def _on_click_convert(self):
         log("Conversion process started")
-        log(f"From {self._from_text.get()}")
-        log(f"To {self._to_text.get()}")
+        log(f"From {self._from_combobox.get()}")
+        log(f"To {self._to_combobox.get()}")
         log(f"Amount: {self._amount_text.get()}")
 
         # Make JSON
-        convert_info = ("CONVERT", self._from_text.get(), self._to_text.get(), self._amount_text.get())
+        convert_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
+                        self._amount_text.get())
         json_info = json.dumps(convert_info)
         log("JSON made")
 
         # Send JSON to server
         self.client_bl.send_data(json_info)
 
-    def show_result(self, result: str):
+    def show_result(self, result: str = ""):
         self._result_label.config(text=result)
-        self._result_label.place(x=350, y=protocol.CENTER_Y)
+        self._result_label.place(x=450, y=170)
 
     def hide_result(self):
         self._result_label.place_forget()
@@ -378,34 +377,20 @@ class HistoryFrame(AppFrame):
         # Constructor
         super().__init__(client_bl, "History")
 
-        self._tree = None
-        self._scrollbar = None
-
         # Create objects
         self._history_label = tk.Label(self, text="History", font=(protocol.FONT_NAME, int(1.75 * protocol.FONT_SIZE)))
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(MainFrame))
 
+        # Create tree
+        self._tree = protocol.create_table(self.app_master, protocol.CURRENCY_TBL_HEADERS, self.app_master.converts)
+
         self._place_objects()
 
     def _place_objects(self):
-        self._back_button.place(x=protocol.BUTTONS_X, y=455)
-        self._history_label.place(x=protocol.LABELS_X, y=int(0.75 * protocol.LABELS_X))
-
-    def create_table(self, converts):
-        # Create tree
-        self._tree = ttk.Treeview(self, columns=protocol.TABLE_HEADERS, show="headings")
-
-        # Define column headings and properties
-        for col in protocol.TABLE_HEADERS:
-            self._tree.heading(col, text=col)
-            self._tree.column(col, width=100, anchor="center")
-
-        # Insert the data rows
-        for row in converts:
-            self._tree.insert("", tk.END, values=row)
-
-        self._tree.place(x=protocol.LABELS_X, y=200, width=800, height=300)
+        self._tree.place(x=protocol.LEFT_X, y=200, width=800, height=300)
+        self._back_button.place(x=protocol.RIGHT_X, y=455)
+        self._history_label.place(x=protocol.LEFT_X, y=int(0.75 * protocol.LEFT_X))
 
 
 class ClientApp(tk.Tk):
@@ -484,7 +469,7 @@ class ClientApp(tk.Tk):
                         dest = data_words[4]
                         amount = data_words[0]
                         result = data_words[3]
-                        if len(self.converts) == protocol.TABLE_CAPACITY:
+                        if len(self.converts) == protocol.CURRENCY_TBL_CAPACITY:
                             self.converts.pop(0)
                         self.converts.append((source, dest, amount, result))
                         log(f"Result message received, source={source}, dest={dest}, amount={amount}, result={result}")
@@ -502,8 +487,6 @@ class ClientApp(tk.Tk):
             self._current_frame.destroy()
         self._current_frame = frame(self.client_bl) # frame() calls the constructor of any frame (frame class)
         self._current_frame.create_user_text(self.username)
-        if isinstance(self._current_frame, HistoryFrame):
-            self._current_frame.create_table(self.converts)
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
         log(f"{self._current_frame.__class__.__name__} to show")
 
