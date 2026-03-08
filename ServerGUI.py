@@ -4,7 +4,6 @@ import tkinter as tk
 from ServerBL import ServerBL
 from tkinter import PhotoImage
 
-
 class ServerGUI:
     def __init__(self, server_bl):
         # Get BL
@@ -16,7 +15,7 @@ class ServerGUI:
         self._root.geometry(f"{protocol.SCREEN_WIDTH}x{protocol.SCREEN_HEIGHT}")
 
         # Show background image
-        self._bg_pimage: PhotoImage = protocol.create_image(protocol.BG_PATH, protocol.SCREEN_AREA)
+        self._bg_pimage: PhotoImage = protocol.open_image(protocol.BG_PATH, protocol.SCREEN_AREA)
         self._bg_label = tk.Label(self._root, image=self._bg_pimage)
         self._bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 

@@ -25,7 +25,7 @@ class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inhe
             # Compare this ID with ID in other frames
 
         # Create background image
-        self._bg_pimage: PhotoImage = protocol.create_image(protocol.BG_PATH, protocol.SCREEN_AREA)
+        self._bg_pimage: PhotoImage = protocol.open_image(protocol.BG_PATH, protocol.SCREEN_AREA)
 
         # Canvas
         self._canvas = tk.Canvas(self, width=protocol.SCREEN_WIDTH, height=protocol.SCREEN_HEIGHT)
@@ -68,7 +68,7 @@ class StartFrame(AppFrame):
         self._guest_button.place(x=protocol.RIGHT_X, y=380)
 
     def on_click_guest(self):
-        self.app_master.username = "Guest"
+        self.app_master.username = protocol.GUEST_USERNAME
         self.app_master.show_frame(MainFrame)
 
 
@@ -303,14 +303,13 @@ class MainFrame(AppFrame):
         super().__init__(client_bl, "Main Page")
 
         # Create reverse image
-        self._switch_pimage: PhotoImage = protocol.create_image(protocol.SWITCH_PATH, protocol.SCREEN_AREA)
+        self._switch_pimage: PhotoImage = protocol.open_image(protocol.SWITCH_PATH, (75, 75))
 
         # Create objects
         self._switch_button = tk.Button(self, image=self._switch_pimage, command=self._on_click_switch)
         self._convert_button = tk.Button(self, text="Convert!", font=protocol.FONT, command=self._on_click_convert)
         protocol.color_button_text(self._convert_button, "#c04000")
-        self._history_button = tk.Button(self, text="History", font=protocol.FONT,
-                                         command=lambda:self.app_master.show_frame(HistoryFrame))
+        self._history_button = tk.Button(self, text="History", font=protocol.FONT, command=self._on_click_history_gui)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
         self._convert_from = tk.Label(self, text="Convert from", font=protocol.FONT)
@@ -356,13 +355,20 @@ class MainFrame(AppFrame):
         log(f"Amount: {self._amount_text.get()}")
 
         # Make JSON
-        convert_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
-                        self._amount_text.get())
+        try:
+            convert_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
+                            self._amount_text.get())
+        except IndexError:
+            convert_info = ("CONVERT", "abc", "def", 999)
         json_info = json.dumps(convert_info)
         log("JSON made")
 
         # Send JSON to server
         self.client_bl.send_data(json_info)
+
+    def _on_click_history_gui(self):
+        self.client_bl.send_data("HISTORY")
+        self.app_master.show_frame(HistoryFrame)
 
     def show_result(self, result: str = ""):
         self._result_label.config(text=result)
@@ -383,7 +389,11 @@ class HistoryFrame(AppFrame):
                                       command=lambda:self.app_master.show_frame(MainFrame))
 
         # Create tree
-        self._tree = protocol.create_table(self.app_master, protocol.CURRENCY_TBL_HEADERS, self.app_master.converts)
+        try:
+            self._tree = protocol.create_table(self.app_master, protocol.HISTORY_TBL_HEADERS,
+                                               self.app_master.converts[self.app_master.username])
+        except KeyError:
+            self._tree = protocol.create_table(self.app_master, protocol.HISTORY_TBL_HEADERS, [])
 
         self._place_objects()
 
@@ -402,10 +412,10 @@ class ClientApp(tk.Tk):
         # Username is needed for hello
         # Username is effectively public so other classes can use it, made possible with public getter and setter
         # Methods, which are both necessary to log changes to variable value
-        self._username = 'Guest'
+        self._username = protocol.GUEST_USERNAME
 
-        # Convert list is needed for history frame
-        self.converts = []
+        # Convert lists are needed for history frame
+        self.converts: dict = {}
 
         # Handle close logic
         # protocol is a tk.Tk method, unrelated to 'protocol' module
@@ -431,13 +441,18 @@ class ClientApp(tk.Tk):
         try:
             while True:
                 # Listen and proceed by instructions from server
-                data = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
-                if data == "SIGNUP":
-                    log("Signup successful")
-                    self.show_frame(MainFrame)
-                elif data == "LOGIN":
-                    log("Login successful")
-                    self.show_frame(MainFrame)
+                data: str = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
+                if data.startswith("[") and data.endswith("]") or data.startswith("{") and data.endswith("}"):
+                    # Checks if data is a JSON string
+                    response_data = json.loads(data)
+                    if response_data[0] == "SIGNUP":
+                        log("Signup successful")
+                        self.converts[self.username] = response_data[1]
+                        self.show_frame(MainFrame)
+                    elif response_data[0] == "LOGIN":
+                        log("Login successful")
+                        self.converts[self.username] = response_data[1]
+                        self.show_frame(MainFrame)
                 elif data == "SIGNUPFAIL":
                     log("Signup failed")
                     self._current_frame.show_fail()
@@ -459,33 +474,45 @@ class ClientApp(tk.Tk):
                 elif data == "FORGOTSETPASSWORD": # Forgot password, passed stage 3
                     log("Password reset")
                     self.show_frame(LoginFrame)
-                elif '=' in data or data == "Error":
-                    # This logic only works in current result string, change logic if changing string
-                    data_words = data.split()
-
-                    # Log and ignore errors related to conversion error
+                elif '=' in data or data == protocol.ERROR_MSG:
                     try:
+                        # This logic only works in current result string, change logic if changing string
+                        data_words = data.split()
+
+                        # Log and ignore errors related to conversion error
                         source = data_words[1]
                         dest = data_words[4]
                         amount = data_words[0]
                         result = data_words[3]
-                        if len(self.converts) == protocol.CURRENCY_TBL_CAPACITY:
-                            self.converts.pop(0)
-                        self.converts.append((source, dest, amount, result))
+
+                        try: # May raise KeyError because self.converts[self.username] might not exist
+                            if len(self.converts[self.username]) == protocol.TBL_CAPACITY:
+                                self.converts[self.username].pop(0)
+                        except KeyError:
+                            pass
+
+                        try:
+                            self.converts[self.username].append((source, dest, amount, result))
+                        except KeyError:
+                            self.converts[self.username] = [(source, dest, amount, result)]
+
                         log(f"Result message received, source={source}, dest={dest}, amount={amount}, result={result}")
-                    except IndexError:
-                        log(str(IndexError))
+
+                    except IndexError as e:
+                        log(f"Error: {e}")
+
                     self._current_frame.show_result(data)
 
         except OSError:
             # Exists to log end of listen and ignore errors that show up when the client socket closes
             log("Stopped listening")
-            pass
 
     def show_frame(self, frame):
         if self._current_frame is not None:
             self._current_frame.destroy()
-        self._current_frame = frame(self.client_bl) # frame() calls the constructor of any frame (frame class)
+
+        # frame() calls the constructor of any frame (frame class)
+        self._current_frame = frame(self.client_bl)
         self._current_frame.create_user_text(self.username)
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
         log(f"{self._current_frame.__class__.__name__} to show")

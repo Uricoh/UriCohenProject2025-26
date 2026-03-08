@@ -8,7 +8,6 @@ from tkinter import ttk, PhotoImage
 from PIL import Image, ImageTk
 import sqlite3
 from typing import Final, Iterable
-from types import FunctionType
 from socket import socket
 from inspect import currentframe
 from hashlib import sha256
@@ -70,7 +69,7 @@ def create_table(root: tk.Tk, headers: tuple, values: list[tuple]) -> ttk.Treevi
 
     return table
 
-def create_image(image_path: str | Path, area: tuple[int, int]) -> PhotoImage:
+def open_image(image_path: str | Path, area: tuple[int, int]) -> PhotoImage:
     image = Image.open(image_path)
     reimage = image.resize(area)
     pimage: PhotoImage = ImageTk.PhotoImage(reimage)
@@ -103,10 +102,18 @@ def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     conn = sqlite3.connect(_DB_NAME)
     cursor = conn.cursor()
     cursor.execute(f'''CREATE TABLE IF NOT EXISTS {USER_TBL_NAME} (
-                                    id INTEGER PRIMARY KEY,
+                                    userid INTEGER PRIMARY KEY,
                                     username TEXT NOT NULL,
                                     password TEXT NOT NULL,
                                     datetime TEXT NOT NULL)
+                                    ''')
+    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {CONVERT_TBL_NAME} (
+                                    convertid INTEGER PRIMARY KEY,
+                                    userid INTEGER NOT NULL,
+                                    amount INTEGER NOT NULL,
+                                    source TEXT NOT NULL,
+                                    result INTEGER NOT NULL,
+                                    dest TEXT NOT NULL)
                                     ''')
     log("SQL connection established")
     return conn, cursor
@@ -144,15 +151,18 @@ RIGHT_X: Final[int] = 1000 # Right
 CENTER_Y: Final[int] = 300
 SEC_CODE_LENGTH: Final[int] = 6
 BUFFER_SIZE: Final[int] = 1024
-CURRENCY_TBL_CAPACITY: Final[int] = 13 # Works for current table size and resolution, change constant if changing those
-CURRENCY_TBL_HEADERS: Final[tuple[str, str, str, str]] = ("Source", "Dest", "Value", "Result")
+TBL_CAPACITY: Final[int] = 13 # Works for current table size and resolution, change constant if changing those
+HISTORY_TBL_HEADERS: Final[tuple[str, str, str, str]] = ("Source", "Dest", "Value", "Result")
 SERVER_TBL_HEADERS: Final[tuple[str, str, str]] = ("Client IP", "Port", "Time")
-ENCODE_FORMAT: Final[str] = 'utf-8'
+ENCODE_FORMAT: Final[str] = "utf-8"
 BASE_CURRENCY: Final[str] = "USD" # Must be set to USD in free plan
 BG_PATH: Final[Path] = Path("background.jpg")
 SWITCH_PATH: Final[Path] = Path("switch.png")
 _LOG_PATH: Final[Path] = Path("log.log")
 _DB_NAME: Final[Path] = Path("database.db")
+ERROR_MSG: Final[str] = "Error"
+GUEST_USERNAME: Final[str] = "Guest"
+CONVERT_TBL_NAME: Final[str] = "CONVERTTBL"
 USER_TBL_NAME: Final[str] = "USERTBL" # Variable name is USER_TBL_NAME because there may be more tables in the future
 APP_NAME: Final[str] = "Currency Converter"
 CURRENCIES: Final[list[str]] = currencies

@@ -32,14 +32,17 @@ def set_field(user_id: int, field_name: str, field_value):
     else:
         print("Field name does not exist")
 
-def see_entire_user_tbl():
-    rows = cursor.execute(f"SELECT * FROM {protocol.USER_TBL_NAME}").fetchall()
-    for row in rows:
+def see_all_tables():
+    user_rows = cursor.execute(f"SELECT * FROM {protocol.USER_TBL_NAME}").fetchall()
+    for row in user_rows:
         print(row)
 
+    convert_rows = cursor.execute(f"SELECT * FROM {protocol.CONVERT_TBL_NAME}").fetchall()
+    for row in convert_rows:
+        print(row)
 
 conn, cursor = protocol.connect_to_db()
 update_emails()
-see_entire_user_tbl()
+see_all_tables()
 conn.close()
 log("DB connection closed")

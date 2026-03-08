@@ -12,6 +12,9 @@ class ClientHandler:
         self._client_socket = _client_socket
         self._conv = _conv
         self._emailer = _emailer
+
+        self._username = protocol.GUEST_USERNAME
+
         # self._email and self._code are used for resetting passwords
         self._email = None
         self._code = None
@@ -27,10 +30,10 @@ class ClientHandler:
                 user_data = json.loads(data)
 
                 if user_data[0] == "SIGNUP":
-                    username = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?
+                    user_exists = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?
                     ''', (user_data[1], )).fetchone()
 
-                    if username: # If username already exists
+                    if user_exists:
                         self._client_socket.sendall("SIGNUPFAIL".encode(protocol.ENCODE_FORMAT))
                         log("Signup fail message sent")
 
@@ -41,7 +44,14 @@ class ClientHandler:
                                        (user_data[1], user_data[2], protocol.get_time_as_text(),
                                         user_data[3]))
                         conn.commit()  # Commit after changing DB
-                        self._client_socket.sendall("SIGNUP".encode(protocol.ENCODE_FORMAT))
+
+                        log(f"Signup done, Username: {user_data[1]}")
+                        self._username = user_data[1]
+
+                        history = self._get_history()
+                        return_data = ["SIGNUP", history]
+                        json_data = json.dumps(return_data)
+                        self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log(f"Data entered, Username: {user_data[1]}")
                         log(f"Data entered, Password (hash): {user_data[2][:5]}...")
                         log(f"Data entered, Email: {user_data[3]}")
@@ -55,7 +65,12 @@ class ClientHandler:
 
                     if result: # If such account found
                         log(f"Login done, Username: {user_data[1]}")
-                        self._client_socket.sendall("LOGIN".encode(protocol.ENCODE_FORMAT))
+                        self._username = user_data[1]
+
+                        history = self._get_history()
+                        return_data = ["LOGIN", history]
+                        json_data = json.dumps(return_data)
+                        self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log("Login success message sent")
                     else:
                         log(f"Login failed, Username: {user_data[1]}")
@@ -124,9 +139,19 @@ class ClientHandler:
                     # Calculate
                     rate = self._conv.convert_currencies(amount, source, dest)
                     if rate < 0:
-                        result: str = "Error"
+                        result: str = protocol.ERROR_MSG
                     else:
                         result: str = f"{amount} {source} = {round(rate, 2)} {dest}"
+
+                    # Add to convert table
+                    if self._username != protocol.GUEST_USERNAME:
+                        user_id = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?''',
+                                                (self._username, )).fetchone()[0]
+                        cursor.execute(f'''INSERT INTO {protocol.CONVERT_TBL_NAME}
+                                        (userid, amount, source, result, dest) VALUES (?, ?, ?, ?, ?)''',
+                                       (user_id, amount, source, rate, dest))
+                        conn.commit()
+
                     self._client_socket.sendall(result.encode(protocol.ENCODE_FORMAT))
                     log(f"Result message sent: {result}")
 
@@ -147,3 +172,20 @@ class ClientHandler:
 
             except Exception as e:
                 log(str(e))
+
+    def _get_history(self) -> list[list]:
+        cursor = protocol.connect_to_db()[1]
+        user_id = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?''',
+                                                (self._username, )).fetchone()[0]
+
+        table_history = cursor.execute(f'''SELECT * FROM {protocol.CONVERT_TBL_NAME}
+                                            WHERE userid = {user_id}''').fetchall()
+
+        # Cut the first two columns, because they only represent IDs and are thus not needed
+        cut_history = []
+        for row in table_history:
+            cut_history.append(row[2:])
+
+        log(f"Fetched user #{user_id} history")
+
+        return cut_history
