@@ -354,12 +354,8 @@ class MainFrame(AppFrame):
         log(f"To {self._to_combobox.get()}")
         log(f"Amount: {self._amount_text.get()}")
 
-        # Make JSON
-        try:
-            convert_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
-                            self._amount_text.get())
-        except IndexError:
-            convert_info = ("CONVERT", "abc", "def", 999)
+        convert_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
+                        self._amount_text.get())
         json_info = json.dumps(convert_info)
         log("JSON made")
 
