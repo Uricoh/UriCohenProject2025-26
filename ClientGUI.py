@@ -19,23 +19,24 @@ class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inhe
         self.app_master: ClientApp = cast(ClientApp, self.master)
         self.app_master.title(f"{protocol.APP_NAME} - {title}")
 
-        # Log socket ID if one exists
-        if protocol.socket_alive(self.client_bl.socket):
-            log(f"Socket ID: {id(self.client_bl.socket)}")
-            # Compare this ID with ID in other frames
-
         # Create background image
         self._bg_pimage: PhotoImage = protocol.open_image(protocol.BG_PATH, protocol.SCREEN_AREA)
 
-        # Canvas
+        # Create canvas
         self._canvas = tk.Canvas(self, width=protocol.SCREEN_WIDTH, height=protocol.SCREEN_HEIGHT)
         self._canvas.pack(fill="both", expand=True)
         self._canvas.create_image(0, 0, image=self._bg_pimage, anchor='nw')
 
-    def create_user_text(self, username: str):
+        # Create user text
         x = protocol.SCREEN_WIDTH - 280
         y = 40
-        self._canvas.create_text(x, y, text=f"👤{username}", fill="#c58917", font=protocol.FONT)
+        self._canvas.create_text(x, y, text=f"👤{self.app_master.username}", fill="#c58917", font=protocol.FONT)
+
+        # Create socket if it doesn't already exist
+        if not protocol.socket_alive(self.client_bl.socket):
+            self.client_bl.on_open()
+            Thread(target=self.app_master.listen, daemon=True).start()
+        log(f"Socket ID: {id(self.client_bl.socket)}")  # Log regardless of whether socket was created now or before
 
     @abstractmethod
     def _place_objects(self):
@@ -53,12 +54,6 @@ class StartFrame(AppFrame):
         self._login_button = tk.Button(self, text="Log in", font=protocol.FONT,
                                        command=lambda:self.app_master.show_frame(LoginFrame))
         self._guest_button = tk.Button(self, text="Guest mode", font=protocol.FONT, command=self.on_click_guest)
-
-        # Create socket if it doesn't already exist
-        if not protocol.socket_alive(self.client_bl.socket):
-            self.client_bl.on_open()
-            Thread(target=self.app_master.listen, daemon=True).start()
-            log(f"Socket ID: {id(self.client_bl.socket)}")
 
         self._place_objects()
 
@@ -83,8 +78,8 @@ class LoginFrame(AppFrame):
         self._fail_label = tk.Label(self, text="Username or password is incorrect", font=protocol.FONT, fg='red')
 
         # Create text fields
-        self._username_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
-        self._password_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
+        self._username_entry = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
+        self._password_entry = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
 
         # Create buttons
         self._login_button = tk.Button(self, text="Log in", font=protocol.FONT, command=self._on_click_login)
@@ -100,8 +95,8 @@ class LoginFrame(AppFrame):
         self._password_label.place(x=protocol.LEFT_X, y=220)
         self.show_fail()
         self.hide_fail()
-        self._username_text.place(x=protocol.LEFT_X, y=80)
-        self._password_text.place(x=protocol.LEFT_X, y=280)
+        self._username_entry.place(x=protocol.LEFT_X, y=80)
+        self._password_entry.place(x=protocol.LEFT_X, y=280)
 
         # The forgot password button is intentionally placed with the labels, rather than with the buttons
         self._forgot_button.place(x=protocol.LEFT_X, y=420)
@@ -110,22 +105,20 @@ class LoginFrame(AppFrame):
 
     def _on_click_login(self):
         # Save username
-        self.app_master.username = self._username_text.get()
+        self.app_master.username = self._username_entry.get()
 
-        # Log text field values
-        log(f"Username: {self._username_text.get()}")
-        log(f"Password: {self._password_text.get()}")
+        # Log username
+        log(f"Username: {self._username_entry.get()}")
 
         # Make JSON
-        user_data = ("LOGIN", self._username_text.get(), protocol.get_hash(self._password_text.get()))
-        json_data = json.dumps(user_data)
-        log("JSON made")
+        user_data = ("LOGIN", self._username_entry.get(), protocol.get_hash(self._password_entry.get()))
+        json_data = protocol.make_json(user_data)
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
 
     def show_fail(self):
-        self._fail_label.place(x=protocol.LEFT_X, y=580)
+        self._fail_label.place(x=protocol.LEFT_X, y=2 * protocol.CENTER_Y)
 
     def hide_fail(self):
         self._fail_label.place_forget()
@@ -143,9 +136,9 @@ class SignupFrame(AppFrame):
         self._fail_label = tk.Label(self, text="Username already exists", font=protocol.FONT, fg='red')
 
         # Create text fields
-        self._username_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
-        self._password_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
-        self._email_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
+        self._username_entry = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
+        self._password_entry = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
+        self._email_entry = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
 
         # Create buttons
         self._signup_button = tk.Button(self, text="Sign up", font=protocol.FONT, command=self._on_click_signup)
@@ -160,32 +153,32 @@ class SignupFrame(AppFrame):
         self.show_fail()
         self.hide_fail()
         self._email_label.place(x=protocol.LEFT_X, y=420)
-        self._username_text.place(x=protocol.LEFT_X, y=80)
-        self._password_text.place(x=protocol.LEFT_X, y=280)
-        self._email_text.place(x=protocol.LEFT_X, y=480)
+        self._username_entry.place(x=protocol.LEFT_X, y=80)
+        self._password_entry.place(x=protocol.LEFT_X, y=280)
+        self._email_entry.place(x=protocol.LEFT_X, y=480)
+
         self._signup_button.place(x=protocol.RIGHT_X, y=80)
         self._back_button.place(x=protocol.RIGHT_X, y=230)
 
     def _on_click_signup(self):
         # Save username
-        self.app_master.username = self._username_text.get()
+        self.app_master.username = self._username_entry.get()
 
         # Log text field values
-        log(f"Username: {self._username_text.get()}")
-        log(f"Password: {self._password_text.get()}")
-        log(f"Email: {self._email_text.get()}")
+        log(f"Username: {self._username_entry.get()}")
+        log(f"Password: {self._password_entry.get()}")
+        log(f"Email: {self._email_entry.get()}")
 
         # Make JSON
-        user_data = ("SIGNUP", self._username_text.get(), protocol.get_hash(self._password_text.get()),
-                     self._email_text.get())
-        json_data = json.dumps(user_data)
-        log("JSON made")
+        user_data = ("SIGNUP", self._username_entry.get(), protocol.get_hash(self._password_entry.get()),
+                     self._email_entry.get())
+        json_data = protocol.make_json(user_data)
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
 
     def show_fail(self):
-        self._fail_label.place(x=protocol.LEFT_X, y=600)
+        self._fail_label.place(x=protocol.LEFT_X, y=2 * protocol.CENTER_Y)
 
     def hide_fail(self):
         self._fail_label.place_forget()
@@ -198,8 +191,8 @@ class ForgotEmailFrame(AppFrame):
 
         # Create objects
         self._not_found_label = tk.Label(self, text="Account not found", font=protocol.FONT, fg='red')
-        self._enter_label = tk.Label(self, text="Enter email", font=protocol.FONT)
-        self._email_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH * 1.5), font=protocol.FONT)
+        self._email_label = tk.Label(self, text="Enter email", font=protocol.FONT)
+        self._email_entry = tk.Entry(self, width=int(protocol.TEXT_WIDTH * 1.5), font=protocol.FONT)
         self._enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self._on_click_enter)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
@@ -209,23 +202,23 @@ class ForgotEmailFrame(AppFrame):
     def _place_objects(self):
         self.show_not_found()
         self.hide_not_found()
-        self._enter_label.place(x=450, y=protocol.CENTER_Y - 100)
-        self._email_text.place(x=250, y=protocol.CENTER_Y)
-        self._enter_button.place(x=450, y=protocol.CENTER_Y + 100)
-        self._back_button.place(x=450, y=protocol.CENTER_Y + 250)
+        self._email_label.place(x=450, y=int(0.65 * protocol.CENTER_Y))
+        self._email_entry.place(x=250, y=protocol.CENTER_Y)
+        self._enter_button.place(x=450, y=int(1.35 * protocol.CENTER_Y))
+        self._back_button.place(x=450, y=int(1.85 * protocol.CENTER_Y))
 
     def _on_click_enter(self):
-        log(f"Email: {self._email_text.get()}")
+        log(f"Email: {self._email_entry.get()}")
 
         # Make JSON
-        data = ("FORGOTEMAIL", self._email_text.get())
-        json_data = json.dumps(data)
+        user_data = ("FORGOTEMAIL", self._email_entry.get())
+        json_data = protocol.make_json(user_data)
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
 
     def show_not_found(self):
-        self._not_found_label.place(x=450, y=protocol.CENTER_Y - 200)
+        self._not_found_label.place(x=450, y=int(0.35 * protocol.CENTER_Y))
 
     def hide_not_found(self):
         self._not_found_label.place_forget()
@@ -238,8 +231,8 @@ class ForgotCodeFrame(AppFrame):
 
         # Create objects
         self._wrong_label = tk.Label(self, text="Wrong code", font=protocol.FONT, fg='red')
-        self._enter_label = tk.Label(self, text="Enter code", font=protocol.FONT)
-        self._code_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH * 1.5), font=protocol.FONT)
+        self._code_label = tk.Label(self, text="Enter code", font=protocol.FONT)
+        self._code_entry = tk.Entry(self, width=int(1.5 * protocol.TEXT_WIDTH), font=protocol.FONT)
         self._enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self.on_click_enter)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
@@ -249,23 +242,23 @@ class ForgotCodeFrame(AppFrame):
     def _place_objects(self):
         self.show_wrong()
         self.hide_wrong()
-        self._enter_label.place(x=450, y=protocol.CENTER_Y - 100)
-        self._code_text.place(x=250, y=protocol.CENTER_Y)
-        self._enter_button.place(x=450, y=protocol.CENTER_Y + 100)
-        self._back_button.place(x=450, y=protocol.CENTER_Y + 250)
+        self._code_label.place(x=450, y=int(0.65 * protocol.CENTER_Y))
+        self._code_entry.place(x=250, y=protocol.CENTER_Y)
+        self._enter_button.place(x=450, y=int(1.35 * protocol.CENTER_Y))
+        self._back_button.place(x=450, y=int(1.85 * protocol.CENTER_Y))
 
     def on_click_enter(self):
-        log(f"Code: {self._code_text.get()}")
+        log(f"Code: {self._code_entry.get()}")
 
         # Make JSON
-        data = ("FORGOTCODE", self._code_text.get())
-        json_data = json.dumps(data)
+        user_data = ("FORGOTCODE", self._code_entry.get())
+        json_data = protocol.make_json(user_data)
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
 
     def show_wrong(self):
-        self._wrong_label.place(x=450, y=protocol.CENTER_Y - 200)
+        self._wrong_label.place(x=450, y=int(0.35 * protocol.CENTER_Y))
 
     def hide_wrong(self):
         self._wrong_label.place_forget()
@@ -278,20 +271,20 @@ class ForgotSetFrame(AppFrame):
 
         # Create objects
         self._password_label = tk.Label(self, text="Enter new password", font=protocol.FONT)
-        self._password_text = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
+        self._password_entry = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT, show='•')
         self._password_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self.on_click_enter)
 
         self._place_objects()
 
     def _place_objects(self):
-        self._password_label.place(x=450, y=protocol.CENTER_Y - 100)
-        self._password_text.place(x=450, y=protocol.CENTER_Y)
-        self._password_button.place(x=450, y=protocol.CENTER_Y + 100)
+        self._password_label.place(x=450, y=int(0.65 * protocol.CENTER_Y))
+        self._password_entry.place(x=450, y=protocol.CENTER_Y)
+        self._password_button.place(x=450, y=int(1.35 * protocol.CENTER_Y))
 
     def on_click_enter(self):
         # Make JSON
-        data = ("FORGOTSETPASSWORD", protocol.get_hash(self._password_text.get()))
-        json_data = json.dumps(data)
+        user_data = ("FORGOTSETPASSWORD", protocol.get_hash(self._password_entry.get()))
+        json_data = protocol.make_json(user_data)
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
@@ -309,12 +302,13 @@ class MainFrame(AppFrame):
         self._switch_button = tk.Button(self, image=self._switch_pimage, command=self._on_click_switch)
         self._convert_button = tk.Button(self, text="Convert!", font=protocol.FONT, command=self._on_click_convert)
         protocol.color_button_text(self._convert_button, "#c04000")
-        self._history_button = tk.Button(self, text="History", font=protocol.FONT, command=self._on_click_history_gui)
+        self._history_button = tk.Button(self, text="History", font=protocol.FONT,
+                                         command=lambda:self.app_master.show_frame(HistoryFrame))
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
-        self._convert_from = tk.Label(self, text="Convert from", font=protocol.FONT)
-        self._convert_to = tk.Label(self, text="To", font=protocol.FONT)
-        self._amount = tk.Label(self, text="Amount", font=protocol.FONT)
+        self._convert_from_label = tk.Label(self, text="Convert from", font=protocol.FONT)
+        self._convert_to_label = tk.Label(self, text="To", font=protocol.FONT)
+        self._amount_label = tk.Label(self, text="Amount", font=protocol.FONT)
         self._hello_label = tk.Label(self, text=f"Hello, {self.app_master.username}", font=protocol.FONT, fg='#008000')
         self._result_label = tk.Label(self, text="", font=(protocol.FONT_NAME, int(1.2 * protocol.FONT_SIZE)),
                                       fg='#27742C')
@@ -324,51 +318,47 @@ class MainFrame(AppFrame):
                                            font=(protocol.FONT_NAME, int(0.75 * protocol.FONT_SIZE)), state="normal")
         self._to_combobox = ttk.Combobox(self, values=protocol.CURRENCIES,
                                          font=(protocol.FONT_NAME, int(0.75 * protocol.FONT_SIZE)), state="normal")
-        self._amount_text = tk.Entry(self, width=int(protocol.TEXT_WIDTH / 2),
-                                     font=(protocol.FONT_NAME, int(0.75 * protocol.FONT_SIZE)))
+        self._amount_entry = tk.Entry(self, width=int(protocol.TEXT_WIDTH / 2),
+                                      font=(protocol.FONT_NAME, int(0.75 * protocol.FONT_SIZE)))
 
         self._place_objects()
 
     def _place_objects(self):
-        self._hello_label.place(x=520, y=20)
+        self._hello_label.place(x=protocol.CENTER_X, y=20) # Average of RIGHT_X AND LEFT_X
         self._switch_button.place(x=340, y=170)
         self._convert_button.place(x=protocol.RIGHT_X, y=155)
         self._history_button.place(x=protocol.RIGHT_X, y=305)
         self._back_button.place(x=protocol.RIGHT_X, y=455)
-        self._convert_from.place(x=protocol.LEFT_X, y=20)
-        self._convert_to.place(x=protocol.LEFT_X, y=220)
-        self._amount.place(x=protocol.LEFT_X, y=420)
+
+        self._convert_from_label.place(x=protocol.LEFT_X, y=20)
+        self._convert_to_label.place(x=protocol.LEFT_X, y=220)
+        self._amount_label.place(x=protocol.LEFT_X, y=420)
         self._from_combobox.place(x=protocol.LEFT_X, y=80)
         self._to_combobox.place(x=protocol.LEFT_X, y=280)
-        self._amount_text.place(x=protocol.LEFT_X, y=480)
+        self._amount_entry.place(x=protocol.LEFT_X, y=480)
 
     def _on_click_switch(self):
         old_from = self._from_combobox.get()
-        protocol.put_text_in_button(self._from_combobox, self._to_combobox.get())
-        protocol.put_text_in_button(self._to_combobox, old_from)
+        protocol.put_text_in_entry(self._from_combobox, self._to_combobox.get())
+        protocol.put_text_in_entry(self._to_combobox, old_from)
         log(f"Currencies switched, now {self._from_combobox.get()} to {self._to_combobox.get()}")
 
     def _on_click_convert(self):
         log("Conversion process started")
         log(f"From {self._from_combobox.get()}")
         log(f"To {self._to_combobox.get()}")
-        log(f"Amount: {self._amount_text.get()}")
+        log(f"Amount: {self._amount_entry.get()}")
 
-        convert_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
-                        self._amount_text.get())
-        json_info = json.dumps(convert_info)
-        log("JSON made")
+        user_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
+                        self._amount_entry.get())
+        json_info = protocol.make_json(user_info)
 
         # Send JSON to server
         self.client_bl.send_data(json_info)
 
-    def _on_click_history_gui(self):
-        self.client_bl.send_data("HISTORY")
-        self.app_master.show_frame(HistoryFrame)
-
     def show_result(self, result: str = ""):
         self._result_label.config(text=result)
-        self._result_label.place(x=450, y=170)
+        self._result_label.place(x=int(0.85 * protocol.CENTER_X), y=int(0.55 * protocol.CENTER_Y))
 
     def hide_result(self):
         self._result_label.place_forget()
@@ -394,8 +384,8 @@ class HistoryFrame(AppFrame):
         self._place_objects()
 
     def _place_objects(self):
-        self._tree.place(x=protocol.LEFT_X, y=200, width=800, height=300)
-        self._back_button.place(x=protocol.RIGHT_X, y=455)
+        self._tree.place(x=protocol.LEFT_X, y=int(0.65 * protocol.CENTER_Y), width=800, height=300)
+        self._back_button.place(x=protocol.RIGHT_X, y=int(1.525 * protocol.CENTER_Y))
         self._history_label.place(x=protocol.LEFT_X, y=int(0.75 * protocol.LEFT_X))
 
 
@@ -439,7 +429,7 @@ class ClientApp(tk.Tk):
                 # Listen and proceed by instructions from server
                 data: str = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
                 if data.startswith("[") and data.endswith("]") or data.startswith("{") and data.endswith("}"):
-                    # Checks if data is a JSON string
+                    # Checks if data can be a JSON string
                     response_data = json.loads(data)
                     if response_data[0] == "SIGNUP":
                         log("Signup successful")
@@ -509,7 +499,6 @@ class ClientApp(tk.Tk):
 
         # frame() calls the constructor of any frame (frame class)
         self._current_frame = frame(self.client_bl)
-        self._current_frame.create_user_text(self.username)
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
         log(f"{self._current_frame.__class__.__name__} to show")
 
@@ -521,6 +510,6 @@ class ClientApp(tk.Tk):
 
 if __name__ == "__main__":
     # Run client
-    client_bl: ClientBL = ClientBL()
-    app: ClientApp = ClientApp(client_bl)
-    app.mainloop()
+    bl: ClientBL = ClientBL()
+    gui: ClientApp = ClientApp(bl)
+    gui.mainloop()

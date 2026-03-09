@@ -36,7 +36,7 @@ class ServerGUI:
         self._place_objects()
 
     def _place_objects(self):
-        self._tree.place(x=protocol.LEFT_X, y=200, width=800, height=300)
+        self._tree.place(x=protocol.LEFT_X, y=int(0.65 * protocol.CENTER_Y), width=800, height=300)
         self._server_label.place(x=protocol.LEFT_X, y=35)
         self._start_button.place(x=protocol.RIGHT_X, y=80)
         self._stop_button.place(x=protocol.RIGHT_X, y=230)
@@ -53,7 +53,7 @@ class ServerGUI:
     def _on_click_refresh_gui(self):
         self._tree.destroy()
         self._tree = protocol.create_table(self._root, protocol.SERVER_TBL_HEADERS, self._server_bl.client_list)
-        self._tree.place(x=protocol.LEFT_X, y=200, width=800, height=300)
+        self._tree.place(x=protocol.LEFT_X, y=int(0.65 * protocol.CENTER_Y), width=800, height=300)
         log("Table refreshed")
 
     def run(self):

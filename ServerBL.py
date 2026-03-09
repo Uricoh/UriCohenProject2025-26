@@ -48,7 +48,7 @@ class ServerBL:
                 pass
 
     def on_click_stop(self):
-        log("Stop button clicked")
+        log("Stop button click identified")
         log("DB connection closed")
         self._socket.close()
         self._emailer.close()

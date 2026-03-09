@@ -1,6 +1,7 @@
 # Imports
 from os import getenv
 from datetime import datetime
+import json
 import logging
 from pathlib import Path
 import tkinter as tk
@@ -118,15 +119,20 @@ def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     log("SQL connection established")
     return conn, cursor
 
-def put_text_in_button(button: tk.Entry, text: str):
-    button.delete(0, "end")
-    button.insert(0, text)
+def put_text_in_entry(entry: tk.Entry, text: str):
+    entry.delete(0, "end")
+    entry.insert(0, text)
 
 def get_hash(password: str) -> str:
-    encoded_password = password.encode(ENCODE_FORMAT)
-    password_hash = sha256(encoded_password).hexdigest()
+    encoded_pw = password.encode(ENCODE_FORMAT)
+    pw_hash = sha256(encoded_pw).hexdigest()
     log("Hash made")
-    return password_hash
+    return pw_hash
+
+def make_json(data: Iterable) -> str:
+    json_data = json.dumps(data)
+    log("JSON made")
+    return json_data
 
 # Constants
 
@@ -147,8 +153,10 @@ FONT: Final[tuple[str, int]] = (FONT_NAME, FONT_SIZE)
 TEXT_WIDTH: Final[int] = 20 # Best to make it a number that divides evenly by many other numbers
 CURRENCY_WIDTH: Final[int] = 5 # Appropriate length that's enough for three uppercase letters, ISO 3-letter-code
 LEFT_X: Final[int] = 50 # Left
-RIGHT_X: Final[int] = 1000 # Right
-CENTER_Y: Final[int] = 300
+RIGHT_X: Final[int] = int(0.65 * SCREEN_WIDTH) # Right
+# Center variables are slightly higher and more left than mathematical centers, indicating start coordinates of elements
+CENTER_X: Final[int] = int((RIGHT_X + LEFT_X) / 2)
+CENTER_Y: Final[int] = int(0.4 * SCREEN_HEIGHT)
 SEC_CODE_LENGTH: Final[int] = 6
 BUFFER_SIZE: Final[int] = 1024
 TBL_CAPACITY: Final[int] = 13 # Works for current table size and resolution, change constant if changing those

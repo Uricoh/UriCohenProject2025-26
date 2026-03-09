@@ -50,7 +50,7 @@ class ClientHandler:
 
                         history = self._get_history()
                         return_data = ["SIGNUP", history]
-                        json_data = json.dumps(return_data)
+                        json_data = protocol.make_json(return_data)
                         self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log(f"Data entered, Username: {user_data[1]}")
                         log(f"Data entered, Password (hash): {user_data[2][:5]}...")
@@ -69,7 +69,7 @@ class ClientHandler:
 
                         history = self._get_history()
                         return_data = ["LOGIN", history]
-                        json_data = json.dumps(return_data)
+                        json_data = protocol.make_json(return_data)
                         self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log("Login success message sent")
                     else:
