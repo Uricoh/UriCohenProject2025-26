@@ -2,16 +2,16 @@ import json
 import protocol
 from protocol import log
 from secrets import randbelow
+from threading import Thread
+import time
 
 
 # One ClientHandler exists per client
 class ClientHandler:
-    def __init__(self, _client_ip, _client_list, _client_socket, _conv, _emailer):
+    def __init__(self, _client_ip, _client_socket, _server_bl):
         self._client_ip = _client_ip
-        self._client_list = _client_list
         self._client_socket = _client_socket
-        self._conv = _conv
-        self._emailer = _emailer
+        self._server_bl = _server_bl
 
         self._username = protocol.GUEST_USERNAME
 
@@ -49,7 +49,8 @@ class ClientHandler:
                         self._username = user_data[1]
 
                         history = self._get_history()
-                        return_data = ["SIGNUP", history]
+                        stocks = self._get_stocks()
+                        return_data = ["SIGNUP", history, stocks]
                         json_data = protocol.make_json(return_data)
                         self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log(f"Data entered, Username: {user_data[1]}")
@@ -68,7 +69,8 @@ class ClientHandler:
                         self._username = user_data[1]
 
                         history = self._get_history()
-                        return_data = ["LOGIN", history]
+                        stocks = self._get_stocks()
+                        return_data = ["LOGIN", history, stocks]
                         json_data = protocol.make_json(return_data)
                         self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log("Login success message sent")
@@ -108,7 +110,7 @@ class ClientHandler:
                     email_subject = "Reset password"
 
                     # Send email
-                    self._emailer.send_email(self._email, email_subject, email_msg)
+                    self._server_bl.emailer.send_email(self._email, email_subject, email_msg)
                     log("Forgot password email success message sent to client")
                     log("Password reset code sent to user by email")
 
@@ -128,6 +130,56 @@ class ClientHandler:
                     conn.commit()
                     log("Password reset")
 
+                elif user_data[0] == "STOCKS":
+                    self._send_stocks()
+                    Thread(target=self._send_stocks_hourly, daemon=True).start()
+
+
+                elif user_data[0] == "BUY":
+                    # Data
+                    company_name = user_data[1]
+                    user_id = cursor.execute(f"SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?",
+                                             (self._username,)).fetchone()[0]
+                    entry = cursor.execute(
+                        f"SELECT * FROM {protocol.STOCKS_TBL_NAME} WHERE userid = ? AND companyname = ?",
+
+                        (user_id, company_name)).fetchone()
+
+                    if entry: # Used to check if there is such stock exists for the user
+                        cursor.execute(
+                            f"UPDATE {protocol.STOCKS_TBL_NAME} SET amount = amount + 1 WHERE userid = ? AND companyname = ?",
+                            (user_id, company_name))
+                    else:
+                        cursor.execute(
+                            f"INSERT INTO {protocol.STOCKS_TBL_NAME} (userid, companyname, amount) VALUES (?, ?, 1)",
+                            (user_id, company_name))
+
+                    conn.commit()
+
+                    log(f"Stock {company_name} bought successfully")
+
+                elif user_data[0] == "SELL":
+                    # Data
+                    company_name = user_data[1]
+                    user_id = cursor.execute(f"SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?",
+                                             (self._username,)).fetchone()[0]
+                    entry = cursor.execute(
+                        f"SELECT * FROM {protocol.STOCKS_TBL_NAME} WHERE userid = ? AND companyname = ?",
+                        (user_id, company_name)).fetchone()
+
+                    if entry:  # Used to check if there is such stock exists for the user
+                        result = cursor.execute(f'''SELECT amount FROM {protocol.STOCKS_TBL_NAME}
+                                    WHERE userid = ? AND companyname = ?''', (user_id, company_name)).fetchone()
+                        if result == 1:
+                            cursor.execute(f'''DELETE FROM {protocol.STOCKS_TBL_NAME}
+                                               WHERE userid = ? AND companyname = ?''', (user_id, company_name))
+                        else:
+                            cursor.execute(f"UPDATE {protocol.STOCKS_TBL_NAME} SET amount = amount - 1 WHERE userid = ? AND companyname = ?",
+                            (user_id, company_name))
+                        conn.commit()
+
+                        log(f"Stock {company_name} sold successfully")
+
                 elif user_data[0] == "CONVERT":
                     log("Server received convert message")
 
@@ -137,7 +189,7 @@ class ClientHandler:
                     amount = user_data[3]
 
                     # Calculate
-                    rate = self._conv.convert_currencies(amount, source, dest)
+                    rate = self._server_bl.currency_provider.convert_currencies(amount, source, dest)
                     if rate < 0:
                         result: str = protocol.ERROR_MSG
                     else:
@@ -159,9 +211,9 @@ class ClientHandler:
                 log("Client disconnected")
 
                 # Remove client from client list
-                for client in self._client_list.copy():
+                for client in self._server_bl.client_list.copy():
                     if self._client_ip in client:
-                        self._client_list.remove(client)
+                        self._server_bl.client_list.remove(client)
                         log("Stopped client removed from list")
                         break # Only one connection may exist per IP address
 
@@ -189,3 +241,39 @@ class ClientHandler:
         log(f"Fetched user #{user_id} history")
 
         return cut_history
+
+    def _get_stocks(self) -> list[list]:
+        cursor = protocol.connect_to_db()[1]
+        user_id = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?''',
+                                 (self._username,)).fetchone()[0]
+
+        table_stocks = cursor.execute(f'''SELECT * FROM {protocol.STOCKS_TBL_NAME}
+                                                    WHERE userid = {user_id}''').fetchall()
+
+        # Cut the first column, because it only represents ID and are thus not needed
+        cut_stocks = []
+        for row in table_stocks:
+            cut_stocks.append(row[2:])
+
+        log(f"Fetched user #{user_id} history")
+
+        return cut_stocks
+
+    def _send_stocks(self) -> None:
+        stocks_data = ["STOCKS", self._server_bl.stocks_provider.companies]
+        json_data = json.dumps(stocks_data)
+        self._client_socket.sendall(f"{protocol.LARGE_SYMBOL}{json_data}{protocol.END_SYMBOL}"
+                                    .encode(protocol.ENCODE_FORMAT))
+        log("Stock values sent")
+
+    def _send_stocks_hourly(self) -> None:
+        current_unix_time: int = int(time.time())
+
+        # Calculate next update time
+        # Wait 6 minutes after next XX:00 so API has time to update
+        next_update_time = current_unix_time // 3600 * 3600 + 3960
+
+        diff = next_update_time - current_unix_time
+        log(f"Stock data will be sent again in {diff // 60}:{diff % 60}")
+        time.sleep(diff)
+        self._send_stocks()

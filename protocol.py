@@ -70,7 +70,7 @@ def create_table(root: tk.Tk, headers: tuple, values: list[tuple]) -> ttk.Treevi
 
     return table
 
-def open_image(image_path: str | Path, area: tuple[int, int]) -> PhotoImage:
+def open_image(image_path, area: tuple[int, int]) -> PhotoImage:
     image = Image.open(image_path)
     reimage = image.resize(area)
     pimage: PhotoImage = ImageTk.PhotoImage(reimage)
@@ -102,20 +102,7 @@ def socket_alive(my_socket: socket) -> bool:
 def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     conn = sqlite3.connect(_DB_NAME)
     cursor = conn.cursor()
-    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {USER_TBL_NAME} (
-                                    userid INTEGER PRIMARY KEY,
-                                    username TEXT NOT NULL,
-                                    password TEXT NOT NULL,
-                                    datetime TEXT NOT NULL)
-                                    ''')
-    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {CONVERT_TBL_NAME} (
-                                    convertid INTEGER PRIMARY KEY,
-                                    userid INTEGER NOT NULL,
-                                    amount INTEGER NOT NULL,
-                                    source TEXT NOT NULL,
-                                    result INTEGER NOT NULL,
-                                    dest TEXT NOT NULL)
-                                    ''')
+    conn.commit()
     log("SQL connection established")
     return conn, cursor
 
@@ -158,19 +145,23 @@ RIGHT_X: Final[int] = int(0.65 * SCREEN_WIDTH) # Right
 CENTER_X: Final[int] = int((RIGHT_X + LEFT_X) / 2)
 CENTER_Y: Final[int] = int(0.4 * SCREEN_HEIGHT)
 SEC_CODE_LENGTH: Final[int] = 6
-BUFFER_SIZE: Final[int] = 1024
+BUFFER_SIZE: Final[int] = 8196
 TBL_CAPACITY: Final[int] = 13 # Works for current table size and resolution, change constant if changing those
 HISTORY_TBL_HEADERS: Final[tuple[str, str, str, str]] = ("Source", "Dest", "Value", "Result")
 SERVER_TBL_HEADERS: Final[tuple[str, str, str]] = ("Client IP", "Port", "Time")
+STOCKS_TBL_HEADERS: Final[tuple[str, str, str]] = ("Stock", "Amount", "Value")
 ENCODE_FORMAT: Final[str] = "utf-8"
 BASE_CURRENCY: Final[str] = "USD" # Must be set to USD in free plan
 BG_PATH: Final[Path] = Path("background.jpg")
 SWITCH_PATH: Final[Path] = Path("switch.png")
 _LOG_PATH: Final[Path] = Path("log.log")
 _DB_NAME: Final[Path] = Path("database.db")
+LARGE_SYMBOL: Final[str] = "<LARGE>" # Used to signal start of large messages
+END_SYMBOL: Final[str] = "<END>" # Used to signal end of large messages
 ERROR_MSG: Final[str] = "Error"
 GUEST_USERNAME: Final[str] = "Guest"
 CONVERT_TBL_NAME: Final[str] = "CONVERTTBL"
+STOCKS_TBL_NAME: Final[str] = "STOCKSTBL"
 USER_TBL_NAME: Final[str] = "USERTBL" # Variable name is USER_TBL_NAME because there may be more tables in the future
 APP_NAME: Final[str] = "Currency Converter"
 CURRENCIES: Final[list[str]] = currencies

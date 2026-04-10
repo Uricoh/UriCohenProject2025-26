@@ -62,6 +62,6 @@ class ServerGUI:
 
 if __name__ == "__main__":
     # Run server
-    server_bl = ServerBL()
-    server_screen: ServerGUI = ServerGUI(server_bl)
-    server_screen.run()
+    bl = ServerBL()
+    gui: ServerGUI = ServerGUI(bl)
+    gui.run()

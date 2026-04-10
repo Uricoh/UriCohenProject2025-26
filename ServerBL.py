@@ -1,10 +1,11 @@
 # Imports
 import protocol
+from StocksProvider import StocksProvider
 from protocol import log
 import threading
 import socket
 from ClientHandler import ClientHandler
-from Converter import Converter
+from CurrencyProvider import CurrencyProvider
 from Emailer import Emailer
 
 
@@ -12,8 +13,9 @@ class ServerBL:
     def __init__(self):
         self.client_list = []
         self._socket = None
-        self._conv = None
-        self._emailer = None
+        self.currency_provider = None
+        self.stocks_provider = None
+        self.emailer = None
 
     def on_click_start(self):
         # BLA - bind, listen, accept
@@ -27,11 +29,11 @@ class ServerBL:
         threading.Thread(target=self.accept, daemon=True).start()
         log("Accept thread started")
 
-        # Create converter and emailer object
-        self._conv: Converter = Converter()
-        log("Converter object creation complete")
-        self._emailer: Emailer = Emailer()
-        log("Emailer object creation complete")
+        # Create providers and emailer objects
+        self.currency_provider: CurrencyProvider = CurrencyProvider()
+        self.stocks_provider: StocksProvider = StocksProvider()
+        self.emailer: Emailer = Emailer()
+        log("Object creations complete")
 
     def accept(self):
         # This runs in Thread A, not in main thread
@@ -39,8 +41,7 @@ class ServerBL:
             try:
                 (client_socket, client_address) = self._socket.accept()
                 self.client_list.append((client_address[0], client_address[1], protocol.get_time_as_text()))
-                client_handler: ClientHandler = ClientHandler(client_address[0], self.client_list, client_socket,
-                                                              self._conv, self._emailer)
+                client_handler: ClientHandler = ClientHandler(client_address[0], client_socket, self)
                 threading.Thread(target=client_handler.receive, daemon=True).start()
                 log("ClientHandler created")
                 log(f"Client accepted, IP: {client_address}")
@@ -51,5 +52,5 @@ class ServerBL:
         log("Stop button click identified")
         log("DB connection closed")
         self._socket.close()
-        self._emailer.close()
+        self.emailer.close()
         log("Server closed")

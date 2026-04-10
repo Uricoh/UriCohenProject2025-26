@@ -9,7 +9,7 @@ from protocol import log
 def update_emails():
     user_count: int = cursor.execute(f"SELECT COUNT(*) FROM {protocol.USER_TBL_NAME}").fetchone()[0] + 1
     for user in range(1, user_count):
-        cursor.execute(f"UPDATE {protocol.USER_TBL_NAME} SET email = '{f'{user}@gmail.com'}' WHERE id = {user}")
+        cursor.execute(f"UPDATE {protocol.USER_TBL_NAME} SET email = '{f'{user}@gmail.com'}' WHERE userid = {user}")
         conn.commit()
 
 def un_update_emails():
@@ -41,8 +41,11 @@ def see_all_tables():
     for row in convert_rows:
         print(row)
 
+
+
 conn, cursor = protocol.connect_to_db()
 update_emails()
+conn.commit()
 see_all_tables()
 conn.close()
 log("DB connection closed")

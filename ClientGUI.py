@@ -8,6 +8,8 @@ from tkinter import ttk, PhotoImage
 from threading import Thread
 import json
 from typing import cast
+from io import BytesIO
+import base64
 
 class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inherit from here
     def __init__(self, client_bl, title: str):
@@ -31,12 +33,6 @@ class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inhe
         x = protocol.SCREEN_WIDTH - 280
         y = 40
         self._canvas.create_text(x, y, text=f"👤{self.app_master.username}", fill="#c58917", font=protocol.FONT)
-
-        # Create socket if it doesn't already exist
-        if not protocol.socket_alive(self.client_bl.socket):
-            self.client_bl.on_open()
-            Thread(target=self.app_master.listen, daemon=True).start()
-        log(f"Socket ID: {id(self.client_bl.socket)}")  # Log regardless of whether socket was created now or before
 
     @abstractmethod
     def _place_objects(self):
@@ -304,6 +300,10 @@ class MainFrame(AppFrame):
         protocol.color_button_text(self._convert_button, "#c04000")
         self._history_button = tk.Button(self, text="History", font=protocol.FONT,
                                          command=lambda:self.app_master.show_frame(HistoryFrame))
+        self._stocks_button = tk.Button(self, text="Stocks", font=protocol.FONT,
+                                        command=lambda:self.app_master.show_frame(StocksFrame))
+        if self.app_master.username == protocol.GUEST_USERNAME:
+            protocol.reverse_button(self._stocks_button)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
                                       command=lambda:self.app_master.show_frame(StartFrame))
         self._convert_from_label = tk.Label(self, text="Convert from", font=protocol.FONT)
@@ -326,9 +326,10 @@ class MainFrame(AppFrame):
     def _place_objects(self):
         self._hello_label.place(x=protocol.CENTER_X, y=20) # Average of RIGHT_X AND LEFT_X
         self._switch_button.place(x=340, y=170)
-        self._convert_button.place(x=protocol.RIGHT_X, y=155)
-        self._history_button.place(x=protocol.RIGHT_X, y=305)
-        self._back_button.place(x=protocol.RIGHT_X, y=455)
+        self._convert_button.place(x=protocol.RIGHT_X, y=115)
+        self._history_button.place(x=protocol.RIGHT_X, y=265)
+        self._stocks_button.place(x=protocol.RIGHT_X, y=415)
+        self._back_button.place(x=protocol.RIGHT_X, y=565)
 
         self._convert_from_label.place(x=protocol.LEFT_X, y=20)
         self._convert_to_label.place(x=protocol.LEFT_X, y=220)
@@ -386,7 +387,154 @@ class HistoryFrame(AppFrame):
     def _place_objects(self):
         self._tree.place(x=protocol.LEFT_X, y=int(0.65 * protocol.CENTER_Y), width=800, height=300)
         self._back_button.place(x=protocol.RIGHT_X, y=int(1.525 * protocol.CENTER_Y))
+        # LEFT_X intentionally used here in the y value in order to create a 4:3 rectangle
         self._history_label.place(x=protocol.LEFT_X, y=int(0.75 * protocol.LEFT_X))
+
+
+class StocksFrame(AppFrame):
+    def __init__(self, client_bl):
+        # Constructor
+        super().__init__(client_bl, "Stocks")
+
+        self._title_label = tk.Label(self, text="Top 6 biggest companies", font=protocol.FONT)
+        self._back_button = tk.Button(self, text="Back to currencies", font=protocol.FONT,
+                                      command=lambda:self.app_master.show_frame(MainFrame))
+        self._my_stocks_button = tk.Button(self, text="My stocks", font=protocol.FONT,
+                                           command=lambda:self.app_master.show_frame(BalanceFrame))
+
+        self._company_labels = []
+        self._images = []
+        self._image_labels = []
+        self._buy_buttons = []
+        self._sell_buttons = []
+        for company in self.app_master.companies:
+            # Create text string without exceeding 120 char best practice
+            text = f"{company['Name']} ({company['Symbol']})\n{company['Price']}$ ({company['Change']}%)\n"
+            text += f"Market cap: {round(company['Market_cap']/1000000, 2)}T$"
+            if company['Change'] < 0:
+                self._company_labels.append(tk.Label(self, text=text, fg="#ef4444",
+                                                    font=(protocol.FONT_NAME, int(0.725 * protocol.FONT_SIZE))))
+            else:
+                self._company_labels.append(tk.Label(self, text=text, fg="#059669",
+                                                     font=(protocol.FONT_NAME, int(0.725 * protocol.FONT_SIZE))))
+            logo_bytes = base64.b64decode(company['Encoded_logo'])
+            logo_file = BytesIO(logo_bytes)
+            logo_image = protocol.open_image(logo_file, (105, 105))
+            self._images.append(logo_image) # Reference has to be saved
+            self._image_labels.append(tk.Label(self, image=logo_image))
+            self._buy_buttons.append(tk.Button(self, text="Buy",
+                                               font=(protocol.FONT_NAME, int(0.625 * protocol.FONT_SIZE)),
+                                               command=lambda n=company['Name']:self._on_click_buy(n)))
+            self._sell_buttons.append(tk.Button(self, text="Sell",
+                                                font=(protocol.FONT_NAME, int(0.625 * protocol.FONT_SIZE)),
+                                                command=lambda n=company['Name']:self._on_click_sell(n)))
+
+        self._place_objects()
+
+    def _place_objects(self):
+        self._title_label.place(x=int(0.8 * protocol.CENTER_X), y=20)
+        self._back_button.place(x=int(0.55 * protocol.CENTER_X), y=580)
+        self._my_stocks_button.place(x=int(1.45 * protocol.CENTER_X), y=580)
+
+        for i in range(int(len(self._company_labels) / 2)): # First half
+            self._company_labels[i].place(x=protocol.LEFT_X, y=120 + 150 * i)
+            self._image_labels[i].place(x=protocol.LEFT_X + 290, y=120 + 150 * i)
+            self._buy_buttons[i].place(x=protocol.LEFT_X + 440, y=120 + 150 * i)
+            self._sell_buttons[i].place(x=protocol.LEFT_X + 440, y=190 + 150 * i)
+
+        for i in range(int(len(self._company_labels) / 2), len(self._company_labels)): # Second half
+            self._company_labels[i].place(x=int(0.95 * protocol.RIGHT_X),
+                                          y=120 + 150 * (i - int(len(self._company_labels) / 2)))
+            self._image_labels[i].place(x=int(0.95 * protocol.RIGHT_X + 290),
+                                        y=120 + 150 * (i - int(len(self._company_labels) / 2)))
+            self._buy_buttons[i].place(x=int(0.95 * protocol.RIGHT_X - 120),
+                                       y=120 + 150 * (i - int(len(self._company_labels) / 2)))
+            self._sell_buttons[i].place(x=int(0.95 * protocol.RIGHT_X - 120),
+                                        y=190 + 150 * (i - int(len(self._company_labels) / 2)))
+
+    def _on_click_buy(self, company_name):
+        # Update balance
+        try:
+            found_row = False
+            for row in self.app_master.stocks[self.app_master.username]:
+                if row[0] == company_name:
+                    row[1] += 1
+                    found_row = True
+                    break
+            if not found_row:
+                self.app_master.stocks[self.app_master.username].append([company_name, 1])
+        except KeyError:
+            self.app_master.stocks[self.app_master.username] = [[company_name, 1]]
+
+        # Make JSON
+        user_data = ("BUY", company_name)
+        json_data = json.dumps(user_data)
+
+        # Send JSON to server
+        self.client_bl.send_data(json_data)
+
+    def _on_click_sell(self, company_name):
+        # Update balance
+        try:
+            for row in self.app_master.stocks[self.app_master.username]:
+                if row[0] == company_name:
+                    if row[1] > 1:
+                        row[1] -= 1
+                        break
+                    else:
+                        self.app_master.stocks[self.app_master.username].remove(row)
+        except KeyError:
+            pass
+
+        # Make JSON
+        user_data = ("SELL", company_name)
+        json_data = json.dumps(user_data)
+
+        # Send JSON to server
+        self.client_bl.send_data(json_data)
+
+
+class BalanceFrame(AppFrame):
+    def __init__(self, client_bl):
+        # Constructor
+        super().__init__(client_bl, "History")
+
+        # Create objects
+        self._my_stocks_label = tk.Label(self, text="My stocks",
+                                         font=(protocol.FONT_NAME, int(1.75 * protocol.FONT_SIZE)))
+        self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
+                                      command=lambda:self.app_master.show_frame(StocksFrame))
+
+        # Add value to stocks
+        stocks_info = []
+        for entry in self.app_master.stocks[self.app_master.username]:
+            for company in self.app_master.companies:
+                if company['Name'] == entry[0]:
+                    price = company['Price']
+                    break
+            stocks_info.append(entry + [price * entry[1]])
+
+        # Create tree
+        try:
+            self._tree = protocol.create_table(self.app_master, protocol.STOCKS_TBL_HEADERS, stocks_info)
+        except KeyError:
+            self._tree = protocol.create_table(self.app_master, protocol.STOCKS_TBL_HEADERS, [])
+
+        # Create portfolio value
+        self._portfolio_value: int = 0
+        for entry in stocks_info:
+            self._portfolio_value += entry[2]
+        self._portfolio_value_label = tk.Label(self, text=f"Your portfolio value is {self._portfolio_value}$",
+                                               font=protocol.FONT, fg='#008000')
+
+        self._place_objects()
+
+    def _place_objects(self):
+        self._tree.place(x=protocol.LEFT_X, y=int(0.65 * protocol.CENTER_Y), width=800, height=300)
+        self._back_button.place(x=protocol.RIGHT_X, y=int(1.525 * protocol.CENTER_Y))
+        # LEFT_X intentionally used here in the y value in order to create a 4:3 rectangle
+        self._my_stocks_label.place(x=protocol.LEFT_X, y=int(0.75 * protocol.LEFT_X))
+        self._portfolio_value_label.place(x=protocol.LEFT_X, y=580)
 
 
 class ClientApp(tk.Tk):
@@ -395,13 +543,22 @@ class ClientApp(tk.Tk):
         super().__init__()
         self.client_bl = client_bl
 
+        # Create socket if it doesn't already exist
+        if not protocol.socket_alive(self.client_bl.socket):
+            self.client_bl.on_open()
+            Thread(target=self.listen, daemon=True).start()
+        log(f"Socket ID: {id(self.client_bl.socket)}")
+
         # Username is needed for hello
         # Username is effectively public so other classes can use it, made possible with public getter and setter
         # Methods, which are both necessary to log changes to variable value
         self._username = protocol.GUEST_USERNAME
 
-        # Convert lists are needed for history frame
+        # Received by the server at signup/login and gradually filled when needed
         self.converts: dict = {}
+        self.stocks: dict = {}
+
+        self.companies = None # Will be filled later by the server
 
         # Handle close logic
         # protocol is a tk.Tk method, unrelated to 'protocol' module
@@ -425,20 +582,37 @@ class ClientApp(tk.Tk):
 
     def listen(self):
         try:
+            # First, send the necessary command for the client
+            self.client_bl.send_data(json.dumps(["STOCKS"]) + "\n")
+            log("Sent stock value request")
             while True:
                 # Listen and proceed by instructions from server
                 data: str = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
+                # Handle logic for large messages
+                if data.startswith(protocol.LARGE_SYMBOL):
+                    all_data = data[len(protocol.LARGE_SYMBOL):]
+                    while protocol.END_SYMBOL not in all_data:
+                        data = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
+                        all_data += data
+
+                    data = all_data.replace(protocol.END_SYMBOL, "").strip()
+
                 if data.startswith("[") and data.endswith("]") or data.startswith("{") and data.endswith("}"):
                     # Checks if data can be a JSON string
                     response_data = json.loads(data)
                     if response_data[0] == "SIGNUP":
                         log("Signup successful")
                         self.converts[self.username] = response_data[1]
+                        self.stocks[self.username] = response_data[2]
                         self.show_frame(MainFrame)
                     elif response_data[0] == "LOGIN":
                         log("Login successful")
                         self.converts[self.username] = response_data[1]
+                        self.stocks[self.username] = response_data[2]
                         self.show_frame(MainFrame)
+                    elif response_data[0] == "STOCKS":
+                        log("Received stock values")
+                        self.companies = response_data[1]
                 elif data == "SIGNUPFAIL":
                     log("Signup failed")
                     self._current_frame.show_fail()
@@ -500,7 +674,7 @@ class ClientApp(tk.Tk):
         # frame() calls the constructor of any frame (frame class)
         self._current_frame = frame(self.client_bl)
         self._current_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
-        log(f"{self._current_frame.__class__.__name__} to show")
+        log(f"{self._current_frame.__class__.__name__} showed")
 
     def _close_window(self):
         log("Client is shutting down")

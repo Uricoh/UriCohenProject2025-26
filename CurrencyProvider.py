@@ -1,26 +1,22 @@
 import protocol
 from protocol import log
-from threading import Thread
 from os import getenv
 import requests
 from datetime import datetime
-import time
+from Provider import Provider
 
-class Converter:
-    # One converter for the entire server, same as emailer
+class CurrencyProvider(Provider):
     def __init__(self):
-        self._status_code = None
-        self._time: str = ''
+        # Constructor
+        super().__init__()
+
         self._rates: dict = {}
 
-        self._fetch_rates()
-        log("Rates fetched")
+        self._fetch_data()
 
-        Thread(target=self.update_hourly, daemon=True).start()
-
-    def _fetch_rates(self):
+    def _fetch_data(self):
         # Get API key
-        api_key = getenv("API_KEY")
+        api_key = getenv("CURRENCY_API_KEY")
 
         # Request data
         url = f"https://currencyapi.net/api/v1/rates?base={protocol.BASE_CURRENCY}&output=json&key={api_key}"
@@ -50,16 +46,3 @@ class Converter:
             return -1
         finally:
             log("Value message sent")
-
-    def update_hourly(self):
-        while True:
-            current_unix_time: int = int(time.time())
-
-            # Calculate next update time
-            # Wait 5 minutes after next XX:00 so API has time to update
-            next_update_time = current_unix_time // 3600 * 3600 + 3900
-
-            diff = next_update_time - current_unix_time
-            log(f"Converter will sleep for {diff // 60}:{diff % 60}")
-            time.sleep(diff)
-            self._fetch_rates()
