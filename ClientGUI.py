@@ -387,6 +387,7 @@ class HistoryFrame(AppFrame):
     def _place_objects(self):
         self._tree.place(x=protocol.LEFT_X, y=int(0.65 * protocol.CENTER_Y), width=800, height=300)
         self._back_button.place(x=protocol.RIGHT_X, y=int(1.525 * protocol.CENTER_Y))
+
         # LEFT_X intentionally used here in the y value in order to create a 4:3 rectangle
         self._history_label.place(x=protocol.LEFT_X, y=int(0.75 * protocol.LEFT_X))
 
@@ -407,19 +408,26 @@ class StocksFrame(AppFrame):
         self._image_labels = []
         self._buy_buttons = []
         self._sell_buttons = []
+
         for company in self.app_master.companies:
             # Create text string without exceeding 120 char best practice
             text = f"{company['Name']} ({company['Symbol']})\n{company['Price']}$ ({company['Change']}%)\n"
             text += f"Market cap: {round(company['Market_cap']/1000000, 2)}T$"
+
+            # Color green or red respectively
             if company['Change'] < 0:
                 self._company_labels.append(tk.Label(self, text=text, fg="#ef4444",
                                                     font=(protocol.FONT_NAME, int(0.725 * protocol.FONT_SIZE))))
             else:
                 self._company_labels.append(tk.Label(self, text=text, fg="#059669",
                                                      font=(protocol.FONT_NAME, int(0.725 * protocol.FONT_SIZE))))
+
+            # Get company logo
             logo_bytes = base64.b64decode(company['Encoded_logo'])
             logo_file = BytesIO(logo_bytes)
             logo_image = protocol.open_image(logo_file, (105, 105))
+
+            # Add objects to lists
             self._images.append(logo_image) # Reference has to be saved
             self._image_labels.append(tk.Label(self, image=logo_image))
             self._buy_buttons.append(tk.Button(self, text="Buy",
@@ -436,13 +444,15 @@ class StocksFrame(AppFrame):
         self._back_button.place(x=int(0.55 * protocol.CENTER_X), y=580)
         self._my_stocks_button.place(x=int(1.45 * protocol.CENTER_X), y=580)
 
-        for i in range(int(len(self._company_labels) / 2)): # First half
+        # Place first half
+        for i in range(int(len(self._company_labels) / 2)):
             self._company_labels[i].place(x=protocol.LEFT_X, y=120 + 150 * i)
             self._image_labels[i].place(x=protocol.LEFT_X + 290, y=120 + 150 * i)
             self._buy_buttons[i].place(x=protocol.LEFT_X + 440, y=120 + 150 * i)
             self._sell_buttons[i].place(x=protocol.LEFT_X + 440, y=190 + 150 * i)
 
-        for i in range(int(len(self._company_labels) / 2), len(self._company_labels)): # Second half
+        # Place second half, i - length of first half because i starts at the length of first half
+        for i in range(int(len(self._company_labels) / 2), len(self._company_labels)):
             self._company_labels[i].place(x=int(0.95 * protocol.RIGHT_X),
                                           y=120 + 150 * (i - int(len(self._company_labels) / 2)))
             self._image_labels[i].place(x=int(0.95 * protocol.RIGHT_X + 290),
@@ -508,11 +518,11 @@ class BalanceFrame(AppFrame):
         # Add value to stocks
         stocks_info = []
         for entry in self.app_master.stocks[self.app_master.username]:
-            for company in self.app_master.companies:
+            for company in self.app_master.companies: # Find the company from entry in the list
                 if company['Name'] == entry[0]:
                     price = company['Price']
                     break
-            stocks_info.append(entry + [price * entry[1]])
+            stocks_info.append(entry + [price])
 
         # Create tree
         try:
@@ -523,8 +533,8 @@ class BalanceFrame(AppFrame):
         # Create portfolio value
         self._portfolio_value: int = 0
         for entry in stocks_info:
-            self._portfolio_value += entry[2]
-        self._portfolio_value_label = tk.Label(self, text=f"Your portfolio value is {self._portfolio_value}$",
+            self._portfolio_value += entry[1] * entry[2] # Add amount of stocks * value of each stock
+        self._portfolio_value_label = tk.Label(self, text=f"Your portfolio value is {round(self._portfolio_value, 2)}$",
                                                font=protocol.FONT, fg='#008000')
 
         self._place_objects()
@@ -532,6 +542,7 @@ class BalanceFrame(AppFrame):
     def _place_objects(self):
         self._tree.place(x=protocol.LEFT_X, y=int(0.65 * protocol.CENTER_Y), width=800, height=300)
         self._back_button.place(x=protocol.RIGHT_X, y=int(1.525 * protocol.CENTER_Y))
+
         # LEFT_X intentionally used here in the y value in order to create a 4:3 rectangle
         self._my_stocks_label.place(x=protocol.LEFT_X, y=int(0.75 * protocol.LEFT_X))
         self._portfolio_value_label.place(x=protocol.LEFT_X, y=580)

@@ -163,19 +163,19 @@ class ClientHandler:
                     company_name = user_data[1]
                     user_id = cursor.execute(f"SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?",
                                              (self._username,)).fetchone()[0]
+
+                    # Used to check if there is such stocks exist for the user, and then check the amount of such stocks
                     entry = cursor.execute(
                         f"SELECT * FROM {protocol.STOCKS_TBL_NAME} WHERE userid = ? AND companyname = ?",
                         (user_id, company_name)).fetchone()
 
-                    if entry:  # Used to check if there is such stock exists for the user
-                        result = cursor.execute(f'''SELECT amount FROM {protocol.STOCKS_TBL_NAME}
-                                    WHERE userid = ? AND companyname = ?''', (user_id, company_name)).fetchone()
-                        if result == 1:
+                    if entry:
+                        if entry[3] == 1:
                             cursor.execute(f'''DELETE FROM {protocol.STOCKS_TBL_NAME}
                                                WHERE userid = ? AND companyname = ?''', (user_id, company_name))
                         else:
-                            cursor.execute(f"UPDATE {protocol.STOCKS_TBL_NAME} SET amount = amount - 1 WHERE userid = ? AND companyname = ?",
-                            (user_id, company_name))
+                            cursor.execute(f'''UPDATE {protocol.STOCKS_TBL_NAME} SET amount = amount - 1
+                                                   WHERE userid = ? AND companyname = ?''', (user_id, company_name))
                         conn.commit()
 
                         log(f"Stock {company_name} sold successfully")
@@ -238,9 +238,14 @@ class ClientHandler:
         for row in table_history:
             cut_history.append(row[2:])
 
+        # Arrange columns by order shown in GUI
+        arranged_history = []
+        for row in cut_history:
+            arranged_row = [row[1], row[3], row[0], row[2]]
+            arranged_history.append(arranged_row)
         log(f"Fetched user #{user_id} history")
 
-        return cut_history
+        return arranged_history
 
     def _get_stocks(self) -> list[list]:
         cursor = protocol.connect_to_db()[1]
