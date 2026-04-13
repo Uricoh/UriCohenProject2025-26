@@ -10,7 +10,7 @@ import time
 class ClientHandler:
     def __init__(self, _client_ip, _client_socket, _server_bl):
         self._client_ip = _client_ip
-        self._client_socket = _client_socket
+        self.client_socket = _client_socket
         self._server_bl = _server_bl
 
         self._username = protocol.GUEST_USERNAME
@@ -24,7 +24,7 @@ class ClientHandler:
         conn, cursor = protocol.connect_to_db()
         while True:
             try:
-                data = self._client_socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
+                data = self.client_socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
                 if not data:
                     continue
                 user_data = json.loads(data)
@@ -34,13 +34,13 @@ class ClientHandler:
                     ''', (user_data[1], )).fetchone()
 
                     if user_exists:
-                        self._client_socket.sendall("SIGNUPFAIL".encode(protocol.ENCODE_FORMAT))
+                        self.client_socket.sendall("SIGNUPFAIL".encode(protocol.ENCODE_FORMAT))
                         log("Signup fail message sent")
 
                     else:
                         # Prevent SQL injection
                         cursor.execute(f'''INSERT INTO {protocol.USER_TBL_NAME}
-                                            ("username", "password", "datetime", "email") VALUES (?, ?, ?, ?)''',
+                                           ("username", "password", "datetime", "email") VALUES (?, ?, ?, ?)''',
                                        (user_data[1], user_data[2], protocol.get_time_as_text(),
                                         user_data[3]))
                         conn.commit()  # Commit after changing DB
@@ -52,7 +52,7 @@ class ClientHandler:
                         stocks = self._get_stocks()
                         return_data = ["SIGNUP", history, stocks]
                         json_data = protocol.make_json(return_data)
-                        self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
+                        self.client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log(f"Data entered, Username: {user_data[1]}")
                         log(f"Data entered, Password (hash): {user_data[2][:5]}...")
                         log(f"Data entered, Email: {user_data[3]}")
@@ -72,11 +72,11 @@ class ClientHandler:
                         stocks = self._get_stocks()
                         return_data = ["LOGIN", history, stocks]
                         json_data = protocol.make_json(return_data)
-                        self._client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
+                        self.client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
                         log("Login success message sent")
                     else:
                         log(f"Login failed, Username: {user_data[1]}")
-                        self._client_socket.sendall("LOGINFAIL".encode(protocol.ENCODE_FORMAT))
+                        self.client_socket.sendall("LOGINFAIL".encode(protocol.ENCODE_FORMAT))
                         log("Login fail message sent")
 
                 elif user_data[0] == "FORGOTEMAIL":
@@ -93,11 +93,11 @@ class ClientHandler:
                     # No need for commit because DB hasn't been changed
 
                     if not result: # If such account not found
-                        self._client_socket.sendall("FORGOTEMAILFAIL".encode(protocol.ENCODE_FORMAT))
+                        self.client_socket.sendall("FORGOTEMAILFAIL".encode(protocol.ENCODE_FORMAT))
                         log("Forgot password email fail message sent")
                         continue
 
-                    self._client_socket.sendall("FORGOTEMAIL".encode(protocol.ENCODE_FORMAT))
+                    self.client_socket.sendall("FORGOTEMAIL".encode(protocol.ENCODE_FORMAT))
 
                     # Generate verification code
                     self._code = f"{randbelow(10 ** protocol.SEC_CODE_LENGTH)}"
@@ -117,16 +117,16 @@ class ClientHandler:
                 elif user_data[0] == "FORGOTCODE":
                     # Forgot password, stage 2
                     if user_data[1] == self._code:
-                        self._client_socket.sendall("FORGOTCODE".encode(protocol.ENCODE_FORMAT))
+                        self.client_socket.sendall("FORGOTCODE".encode(protocol.ENCODE_FORMAT))
                     else:
-                        self._client_socket.sendall("FORGOTCODEFAIL".encode(protocol.ENCODE_FORMAT))
+                        self.client_socket.sendall("FORGOTCODEFAIL".encode(protocol.ENCODE_FORMAT))
                         log("Forgot password code fail message sent")
 
                 elif user_data[0] == "FORGOTSETPASSWORD":
                     # Forgot password, stage 3
                     cursor.execute(f"UPDATE {protocol.USER_TBL_NAME} SET password = ? WHERE email = ?",
                                    (user_data[1], self._email))
-                    self._client_socket.sendall("FORGOTSETPASSWORD".encode(protocol.ENCODE_FORMAT))
+                    self.client_socket.sendall("FORGOTSETPASSWORD".encode(protocol.ENCODE_FORMAT))
                     conn.commit()
                     log("Password reset")
 
@@ -204,7 +204,7 @@ class ClientHandler:
                                        (user_id, amount, source, rate, dest))
                         conn.commit()
 
-                    self._client_socket.sendall(result.encode(protocol.ENCODE_FORMAT))
+                    self.client_socket.sendall(result.encode(protocol.ENCODE_FORMAT))
                     log(f"Result message sent: {result}")
 
             except OSError:
@@ -217,7 +217,7 @@ class ClientHandler:
                         log("Stopped client removed from list")
                         break # Only one connection may exist per IP address
 
-                self._client_socket.close()
+                self.client_socket.close()
                 conn.close()
                 log("DB connection closed")
                 break
@@ -266,9 +266,9 @@ class ClientHandler:
 
     def _send_stocks(self) -> None:
         stocks_data = ["STOCKS", self._server_bl.stocks_provider.companies]
-        json_data = json.dumps(stocks_data)
-        self._client_socket.sendall(f"{protocol.LARGE_SYMBOL}{json_data}{protocol.END_SYMBOL}"
-                                    .encode(protocol.ENCODE_FORMAT))
+        json_data = protocol.make_json(stocks_data)
+        self.client_socket.sendall(f"{protocol.LARGE_SYMBOL}{json_data}{protocol.END_SYMBOL}"
+                                   .encode(protocol.ENCODE_FORMAT))
         log("Stock values sent")
 
     def _send_stocks_hourly(self) -> None:

@@ -40,11 +40,11 @@ class StocksProvider(Provider):
 
     def _get_data(self, company):
         # Request data
-        company_url = f"https://finnhub.io/api/v1/stock/profile2?symbol={company["Symbol"]}&token={self._api_key}"
+        company_url = f"https://finnhub.io/api/v1/stock/profile2?symbol={company['Symbol']}&token={self._api_key}"
         company_response = requests.get(company_url).json()
-        item_url = f"https://finnhub.io/api/v1/quote?symbol={company["Symbol"]}&token={self._api_key}"
+        item_url = f"https://finnhub.io/api/v1/quote?symbol={company['Symbol']}&token={self._api_key}"
         item_response = requests.get(item_url).json()
-        log(f"Received currency rates from both API pages, company {company["Symbol"]}")
+        log(f"Received currency rates from both API pages, company {company['Symbol']}")
 
         # Save data
         company["Price"] = item_response["c"]

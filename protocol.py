@@ -72,7 +72,7 @@ def create_table(root: tk.Tk, headers: tuple, values: list[tuple]) -> ttk.Treevi
 
 def open_image(image_path, area: tuple[int, int]) -> PhotoImage:
     image = Image.open(image_path)
-    reimage = image.resize(area)
+    reimage = image.resize(area, Image.Resampling.LANCZOS)
     pimage: PhotoImage = ImageTk.PhotoImage(reimage)
     return pimage
 

@@ -25,14 +25,14 @@ class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inhe
         self._bg_pimage: PhotoImage = protocol.open_image(protocol.BG_PATH, protocol.SCREEN_AREA)
 
         # Create canvas
-        self._canvas = tk.Canvas(self, width=protocol.SCREEN_WIDTH, height=protocol.SCREEN_HEIGHT)
-        self._canvas.pack(fill="both", expand=True)
-        self._canvas.create_image(0, 0, image=self._bg_pimage, anchor='nw')
+        self.canvas = tk.Canvas(self, width=protocol.SCREEN_WIDTH, height=protocol.SCREEN_HEIGHT)
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas.create_image(0, 0, image=self._bg_pimage, anchor='nw')
 
         # Create user text
-        x = protocol.SCREEN_WIDTH - 280
+        x = int(1.3 * protocol.RIGHT_X)
         y = 40
-        self._canvas.create_text(x, y, text=f"👤{self.app_master.username}", fill="#c58917", font=protocol.FONT)
+        self.canvas.create_text(x, y, text=f"👤{self.app_master.username}", fill="#c58917", font=protocol.FONT)
 
     @abstractmethod
     def _place_objects(self):
@@ -478,7 +478,7 @@ class StocksFrame(AppFrame):
 
         # Make JSON
         user_data = ("BUY", company_name)
-        json_data = json.dumps(user_data)
+        json_data = protocol.make_json(user_data)
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
@@ -498,7 +498,7 @@ class StocksFrame(AppFrame):
 
         # Make JSON
         user_data = ("SELL", company_name)
-        json_data = json.dumps(user_data)
+        json_data = protocol.make_json(user_data)
 
         # Send JSON to server
         self.client_bl.send_data(json_data)
@@ -507,7 +507,7 @@ class StocksFrame(AppFrame):
 class BalanceFrame(AppFrame):
     def __init__(self, client_bl):
         # Constructor
-        super().__init__(client_bl, "History")
+        super().__init__(client_bl, "My stocks")
 
         # Create objects
         self._my_stocks_label = tk.Label(self, text="My stocks",
@@ -517,6 +517,7 @@ class BalanceFrame(AppFrame):
 
         # Add value to stocks
         stocks_info = []
+        price = 0 # Default price
         for entry in self.app_master.stocks[self.app_master.username]:
             for company in self.app_master.companies: # Find the company from entry in the list
                 if company['Name'] == entry[0]:
@@ -548,6 +549,27 @@ class BalanceFrame(AppFrame):
         self._portfolio_value_label.place(x=protocol.LEFT_X, y=580)
 
 
+class ErrorFrame(AppFrame):
+    def __init__(self, client_bl):
+        # Constructor
+        super().__init__(client_bl, "Error")
+
+        # Create back button
+        self._back_button = tk.Button(self, text="Back to previous page", font=protocol.FONT,
+                                      command=lambda:self.app_master.show_frame(type(self.app_master.previous_frame)))
+
+        # Create error text
+        x = protocol.RIGHT_X
+        y = protocol.CENTER_Y
+        self.canvas.create_text(x, y, text="Error: Client is no longer connected to server", fill='#d32f2f',
+                                font=protocol.FONT)
+
+        self._place_objects()
+
+    def _place_objects(self):
+        self._back_button.place(x=protocol.RIGHT_X, y=580)
+
+
 class ClientApp(tk.Tk):
     def __init__(self, client_bl):
         # Constructors
@@ -570,6 +592,9 @@ class ClientApp(tk.Tk):
         self.stocks: dict = {}
 
         self.companies = None # Will be filled later by the server
+
+        # Used in ErrorFrame to return to previous page
+        self.previous_frame = None
 
         # Handle close logic
         # protocol is a tk.Tk method, unrelated to 'protocol' module
@@ -594,7 +619,7 @@ class ClientApp(tk.Tk):
     def listen(self):
         try:
             # First, send the necessary command for the client
-            self.client_bl.send_data(json.dumps(["STOCKS"]) + "\n")
+            self.client_bl.send_data(protocol.make_json(["STOCKS"]) + "\n")
             log("Sent stock value request")
             while True:
                 # Listen and proceed by instructions from server
@@ -645,6 +670,10 @@ class ClientApp(tk.Tk):
                 elif data == "FORGOTSETPASSWORD": # Forgot password, passed stage 3
                     log("Password reset")
                     self.show_frame(LoginFrame)
+                elif data == "CLOSE":
+                    log("Received close message")
+                    self.previous_frame = self._current_frame # Handle previous frame
+                    self.show_frame(ErrorFrame)
                 elif '=' in data or data == protocol.ERROR_MSG:
                     try:
                         # This logic only works in current result string, change logic if changing string

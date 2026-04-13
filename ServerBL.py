@@ -12,6 +12,7 @@ from Emailer import Emailer
 class ServerBL:
     def __init__(self):
         self.client_list = []
+        self._client_handler_list = []
         self._socket = None
         self.currency_provider = None
         self.stocks_provider = None
@@ -42,6 +43,7 @@ class ServerBL:
                 (client_socket, client_address) = self._socket.accept()
                 self.client_list.append((client_address[0], client_address[1], protocol.get_time_as_text()))
                 client_handler: ClientHandler = ClientHandler(client_address[0], client_socket, self)
+                self._client_handler_list.append(client_handler)
                 threading.Thread(target=client_handler.receive, daemon=True).start()
                 log("ClientHandler created")
                 log(f"Client accepted, IP: {client_address}")
@@ -50,7 +52,8 @@ class ServerBL:
 
     def on_click_stop(self):
         log("Stop button click identified")
-        log("DB connection closed")
+        for handler in self._client_handler_list:
+            handler.client_socket.sendall("CLOSE".encode(protocol.ENCODE_FORMAT))
         self._socket.close()
         self.emailer.close()
         log("Server closed")
