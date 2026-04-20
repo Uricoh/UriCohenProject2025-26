@@ -14,6 +14,7 @@ from inspect import currentframe
 from hashlib import sha256
 from dotenv import load_dotenv
 from currencies import currencies
+from io import BytesIO
 
 # This command MUST appear on top in order to load some constants
 # Load .env file
@@ -56,6 +57,7 @@ def get_time_as_text() -> str:
 def color_button_text(button: tk.Button, color: str) -> None:
     button.config(fg=color, activeforeground=color)
 
+ # 'values' can only be [] at default
 def create_table(root: tk.Tk, headers: tuple, values: list[tuple]) -> ttk.Treeview:
     table = ttk.Treeview(root, columns=headers, show="headings")
 
@@ -70,7 +72,7 @@ def create_table(root: tk.Tk, headers: tuple, values: list[tuple]) -> ttk.Treevi
 
     return table
 
-def open_image(image_path, area: tuple[int, int]) -> PhotoImage:
+def open_image(image_path: str | Path | BytesIO, area: tuple[int, int]) -> PhotoImage:
     image = Image.open(image_path)
     reimage = image.resize(area, Image.Resampling.LANCZOS)
     pimage: PhotoImage = ImageTk.PhotoImage(reimage)
@@ -145,6 +147,7 @@ RIGHT_X: Final[int] = int(0.65 * SCREEN_WIDTH) # Right
 CENTER_X: Final[int] = int((RIGHT_X + LEFT_X) / 2)
 CENTER_Y: Final[int] = int(0.4 * SCREEN_HEIGHT)
 SEC_CODE_LENGTH: Final[int] = 6
+MIN_PASSWORD_LENGTH: Final[int] = 8
 BUFFER_SIZE: Final[int] = 8196
 TBL_CAPACITY: Final[int] = 13 # Works for current table size and resolution, change constant if changing those
 HISTORY_TBL_HEADERS: Final[tuple[str, str, str, str]] = ("Source", "Dest", "Value", "Result")
@@ -157,7 +160,6 @@ SWITCH_PATH: Final[Path] = Path("switch.png")
 _LOG_PATH: Final[Path] = Path("log.log")
 _DB_NAME: Final[Path] = Path("database.db")
 LARGE_SYMBOL: Final[str] = "<LARGE>" # Used to signal start of large messages
-END_SYMBOL: Final[str] = "<END>" # Used to signal end of large messages
 ERROR_MSG: Final[str] = "Error"
 GUEST_USERNAME: Final[str] = "Guest"
 CONVERT_TBL_NAME: Final[str] = "CONVERTTBL"

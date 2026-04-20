@@ -10,6 +10,7 @@ import json
 from typing import cast
 from io import BytesIO
 import base64
+from email_validator import validate_email, EmailNotValidError
 
 class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inherit from here
     def __init__(self, client_bl, title: str):
@@ -129,7 +130,7 @@ class SignupFrame(AppFrame):
         self._username_label = tk.Label(self, text="Username:", font=protocol.FONT)
         self._password_label = tk.Label(self, text="Password:", font=protocol.FONT)
         self._email_label = tk.Label(self, text="Email:", font=protocol.FONT)
-        self._fail_label = tk.Label(self, text="Username already exists", font=protocol.FONT, fg='red')
+        self._fail_label = tk.Label(self, text="Check data", font=protocol.FONT, fg='red')
 
         # Create text fields
         self._username_entry = tk.Entry(self, width=protocol.TEXT_WIDTH, font=protocol.FONT)
@@ -152,7 +153,6 @@ class SignupFrame(AppFrame):
         self._username_entry.place(x=protocol.LEFT_X, y=80)
         self._password_entry.place(x=protocol.LEFT_X, y=280)
         self._email_entry.place(x=protocol.LEFT_X, y=480)
-
         self._signup_button.place(x=protocol.RIGHT_X, y=80)
         self._back_button.place(x=protocol.RIGHT_X, y=230)
 
@@ -165,13 +165,25 @@ class SignupFrame(AppFrame):
         log(f"Password: {self._password_entry.get()}")
         log(f"Email: {self._email_entry.get()}")
 
-        # Make JSON
-        user_data = ("SIGNUP", self._username_entry.get(), protocol.get_hash(self._password_entry.get()),
-                     self._email_entry.get())
-        json_data = protocol.make_json(user_data)
+        # Check if password is invalid
+        if len(self._password_entry.get()) < protocol.MIN_PASSWORD_LENGTH:
+            self.show_fail()
 
-        # Send JSON to server
-        self.client_bl.send_data(json_data)
+        else:
+            # Check for email validity
+            try:
+                validate_email(self._email_entry.get())
+
+                # Make JSON
+                user_data = ("SIGNUP", self._username_entry.get(), protocol.get_hash(self._password_entry.get()),
+                             self._email_entry.get())
+                json_data = protocol.make_json(user_data)
+
+                # Send JSON to server
+                self.client_bl.send_data(json_data)
+
+            except EmailNotValidError:
+                self.show_fail()
 
     def show_fail(self):
         self._fail_label.place(x=protocol.LEFT_X, y=2 * protocol.CENTER_Y)
@@ -188,10 +200,10 @@ class ForgotEmailFrame(AppFrame):
         # Create objects
         self._not_found_label = tk.Label(self, text="Account not found", font=protocol.FONT, fg='red')
         self._email_label = tk.Label(self, text="Enter email", font=protocol.FONT)
-        self._email_entry = tk.Entry(self, width=int(protocol.TEXT_WIDTH * 1.5), font=protocol.FONT)
+        self._email_entry = tk.Entry(self, width=int(1.5 * protocol.TEXT_WIDTH), font=protocol.FONT)
         self._enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self._on_click_enter)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(StartFrame))
+                                      command=lambda:self.app_master.show_frame(LoginFrame))
 
         self._place_objects()
 
@@ -231,7 +243,7 @@ class ForgotCodeFrame(AppFrame):
         self._code_entry = tk.Entry(self, width=int(1.5 * protocol.TEXT_WIDTH), font=protocol.FONT)
         self._enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self.on_click_enter)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(StartFrame))
+                                      command=lambda:self.app_master.show_frame(LoginFrame))
 
         self._place_objects()
 
@@ -330,7 +342,6 @@ class MainFrame(AppFrame):
         self._history_button.place(x=protocol.RIGHT_X, y=265)
         self._stocks_button.place(x=protocol.RIGHT_X, y=415)
         self._back_button.place(x=protocol.RIGHT_X, y=565)
-
         self._convert_from_label.place(x=protocol.LEFT_X, y=20)
         self._convert_to_label.place(x=protocol.LEFT_X, y=220)
         self._amount_label.place(x=protocol.LEFT_X, y=420)
@@ -351,7 +362,7 @@ class MainFrame(AppFrame):
         log(f"Amount: {self._amount_entry.get()}")
 
         user_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
-                        self._amount_entry.get())
+                     self._amount_entry.get())
         json_info = protocol.make_json(user_info)
 
         # Send JSON to server
@@ -410,7 +421,7 @@ class StocksFrame(AppFrame):
         self._sell_buttons = []
 
         for company in self.app_master.companies:
-            # Create text string without exceeding 120 char best practice
+            # Create text string without exceeding 120-char best practice
             text = f"{company['Name']} ({company['Symbol']})\n{company['Price']}$ ({company['Change']}%)\n"
             text += f"Market cap: {round(company['Market_cap']/1000000, 2)}T$"
 
@@ -440,18 +451,20 @@ class StocksFrame(AppFrame):
         self._place_objects()
 
     def _place_objects(self):
+        # Place general icons
         self._title_label.place(x=int(0.8 * protocol.CENTER_X), y=20)
         self._back_button.place(x=int(0.55 * protocol.CENTER_X), y=580)
         self._my_stocks_button.place(x=int(1.45 * protocol.CENTER_X), y=580)
 
-        # Place first half
+        # Place first half of companies
         for i in range(int(len(self._company_labels) / 2)):
             self._company_labels[i].place(x=protocol.LEFT_X, y=120 + 150 * i)
             self._image_labels[i].place(x=protocol.LEFT_X + 290, y=120 + 150 * i)
             self._buy_buttons[i].place(x=protocol.LEFT_X + 440, y=120 + 150 * i)
             self._sell_buttons[i].place(x=protocol.LEFT_X + 440, y=190 + 150 * i)
 
-        # Place second half, i - length of first half because i starts at the length of first half
+        # Place second half, i = length of first half because in this loop, i starts at the index of
+        # the length of the first half
         for i in range(int(len(self._company_labels) / 2), len(self._company_labels)):
             self._company_labels[i].place(x=int(0.95 * protocol.RIGHT_X),
                                           y=120 + 150 * (i - int(len(self._company_labels) / 2)))
@@ -624,14 +637,17 @@ class ClientApp(tk.Tk):
             while True:
                 # Listen and proceed by instructions from server
                 data: str = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
-                # Handle logic for large messages
-                if data.startswith(protocol.LARGE_SYMBOL):
-                    all_data = data[len(protocol.LARGE_SYMBOL):]
-                    while protocol.END_SYMBOL not in all_data:
-                        data = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
-                        all_data += data
 
-                    data = all_data.replace(protocol.END_SYMBOL, "").strip()
+                # Handle large message logic
+                if data.startswith(protocol.LARGE_SYMBOL):
+                    # Find length
+                    length = int(data.split(protocol.LARGE_SYMBOL)[1])
+                    data_bytes = bytearray()
+                    while len(data_bytes) < length:
+                        # Shouldn't be decoded now in order to calculate bytes length
+                        data_bytes.extend(self.client_bl.socket.recv(protocol.BUFFER_SIZE))
+
+                    data = data_bytes.decode(protocol.ENCODE_FORMAT)
 
                 if data.startswith("[") and data.endswith("]") or data.startswith("{") and data.endswith("}"):
                     # Checks if data can be a JSON string

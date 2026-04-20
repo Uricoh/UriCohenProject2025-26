@@ -267,8 +267,9 @@ class ClientHandler:
     def _send_stocks(self) -> None:
         stocks_data = ["STOCKS", self._server_bl.stocks_provider.companies]
         json_data = protocol.make_json(stocks_data)
-        self.client_socket.sendall(f"{protocol.LARGE_SYMBOL}{json_data}{protocol.END_SYMBOL}"
-                                   .encode(protocol.ENCODE_FORMAT))
+        bytes_length = len(json_data.encode(protocol.ENCODE_FORMAT))
+        self.client_socket.sendall(f"{protocol.LARGE_SYMBOL}{bytes_length}".encode(protocol.ENCODE_FORMAT))
+        self.client_socket.sendall(json_data.encode(protocol.ENCODE_FORMAT))
         log("Stock values sent")
 
     def _send_stocks_hourly(self) -> None:

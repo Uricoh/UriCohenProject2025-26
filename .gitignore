@@ -1,4 +1,5 @@
-~$i_Cohen_Project_book.doc
+~$*.doc
+-$*.docx
 .idea
 __pycharm__
 .env
