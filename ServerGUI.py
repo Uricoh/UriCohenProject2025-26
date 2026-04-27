@@ -4,6 +4,7 @@ import tkinter as tk
 from ServerBL import ServerBL
 from tkinter import PhotoImage
 
+
 class ServerGUI:
     def __init__(self, server_bl):
         # Get BL

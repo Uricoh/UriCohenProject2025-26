@@ -12,7 +12,8 @@ from io import BytesIO
 import base64
 from email_validator import validate_email, EmailNotValidError
 
-class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inherit from here
+
+class AppFrame(tk.Frame, ABC):  # Frame template for the frames, they should inherit from here
     def __init__(self, client_bl, title: str):
         # Call constructor and get BL
         super().__init__()
@@ -37,7 +38,7 @@ class AppFrame(tk.Frame, ABC): # Frame template for the frames, they should inhe
 
     @abstractmethod
     def _place_objects(self):
-        pass # This method must be implemented by every frame individually
+        pass  # This method must be implemented by every frame individually
 
 
 class StartFrame(AppFrame):
@@ -47,9 +48,9 @@ class StartFrame(AppFrame):
 
         # Create buttons
         self._signup_button = tk.Button(self, text="Sign up", font=protocol.FONT,
-                                        command=lambda:self.app_master.show_frame(SignupFrame))
+                                        command=lambda: self.app_master.show_frame(SignupFrame))
         self._login_button = tk.Button(self, text="Log in", font=protocol.FONT,
-                                       command=lambda:self.app_master.show_frame(LoginFrame))
+                                       command=lambda: self.app_master.show_frame(LoginFrame))
         self._guest_button = tk.Button(self, text="Guest mode", font=protocol.FONT, command=self.on_click_guest)
 
         self._place_objects()
@@ -81,9 +82,9 @@ class LoginFrame(AppFrame):
         # Create buttons
         self._login_button = tk.Button(self, text="Log in", font=protocol.FONT, command=self._on_click_login)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(StartFrame))
+                                      command=lambda: self.app_master.show_frame(StartFrame))
         self._forgot_button = tk.Button(self, text="Forgot password?", font=protocol.FONT,
-                                        command=lambda:self.app_master.show_frame(ForgotEmailFrame))
+                                        command=lambda: self.app_master.show_frame(ForgotEmailFrame))
 
         self._place_objects()
 
@@ -140,7 +141,7 @@ class SignupFrame(AppFrame):
         # Create buttons
         self._signup_button = tk.Button(self, text="Sign up", font=protocol.FONT, command=self._on_click_signup)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(StartFrame))
+                                      command=lambda: self.app_master.show_frame(StartFrame))
 
         self._place_objects()
 
@@ -203,7 +204,7 @@ class ForgotEmailFrame(AppFrame):
         self._email_entry = tk.Entry(self, width=int(1.5 * protocol.TEXT_WIDTH), font=protocol.FONT)
         self._enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self._on_click_enter)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(LoginFrame))
+                                      command=lambda: self.app_master.show_frame(LoginFrame))
 
         self._place_objects()
 
@@ -243,7 +244,7 @@ class ForgotCodeFrame(AppFrame):
         self._code_entry = tk.Entry(self, width=int(1.5 * protocol.TEXT_WIDTH), font=protocol.FONT)
         self._enter_button = tk.Button(self, text="Enter", font=protocol.FONT, command=self.on_click_enter)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(LoginFrame))
+                                      command=lambda: self.app_master.show_frame(LoginFrame))
 
         self._place_objects()
 
@@ -311,13 +312,13 @@ class MainFrame(AppFrame):
         self._convert_button = tk.Button(self, text="Convert!", font=protocol.FONT, command=self._on_click_convert)
         protocol.color_button_text(self._convert_button, "#c04000")
         self._history_button = tk.Button(self, text="History", font=protocol.FONT,
-                                         command=lambda:self.app_master.show_frame(HistoryFrame))
+                                         command=lambda: self.app_master.show_frame(HistoryFrame))
         self._stocks_button = tk.Button(self, text="Stocks", font=protocol.FONT,
-                                        command=lambda:self.app_master.show_frame(StocksFrame))
+                                        command=lambda: self.app_master.show_frame(StocksFrame))
         if self.app_master.username == protocol.GUEST_USERNAME:
             protocol.reverse_button(self._stocks_button)
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(StartFrame))
+                                      command=lambda: self.app_master.show_frame(StartFrame))
         self._convert_from_label = tk.Label(self, text="Convert from", font=protocol.FONT)
         self._convert_to_label = tk.Label(self, text="To", font=protocol.FONT)
         self._amount_label = tk.Label(self, text="Amount", font=protocol.FONT)
@@ -336,7 +337,7 @@ class MainFrame(AppFrame):
         self._place_objects()
 
     def _place_objects(self):
-        self._hello_label.place(x=protocol.CENTER_X, y=20) # Average of RIGHT_X AND LEFT_X
+        self._hello_label.place(x=protocol.CENTER_X, y=20)  # Average of RIGHT_X AND LEFT_X
         self._switch_button.place(x=340, y=170)
         self._convert_button.place(x=protocol.RIGHT_X, y=115)
         self._history_button.place(x=protocol.RIGHT_X, y=265)
@@ -384,7 +385,7 @@ class HistoryFrame(AppFrame):
         # Create objects
         self._history_label = tk.Label(self, text="History", font=(protocol.FONT_NAME, int(1.75 * protocol.FONT_SIZE)))
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(MainFrame))
+                                      command=lambda: self.app_master.show_frame(MainFrame))
 
         # Create tree
         try:
@@ -410,9 +411,9 @@ class StocksFrame(AppFrame):
 
         self._title_label = tk.Label(self, text="Top 6 biggest companies", font=protocol.FONT)
         self._back_button = tk.Button(self, text="Back to currencies", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(MainFrame))
+                                      command=lambda: self.app_master.show_frame(MainFrame))
         self._my_stocks_button = tk.Button(self, text="My stocks", font=protocol.FONT,
-                                           command=lambda:self.app_master.show_frame(BalanceFrame))
+                                           command=lambda: self.app_master.show_frame(BalanceFrame))
 
         self._company_labels = []
         self._images = []
@@ -423,12 +424,12 @@ class StocksFrame(AppFrame):
         for company in self.app_master.companies:
             # Create text string without exceeding 120-char best practice
             text = f"{company['Name']} ({company['Symbol']})\n{company['Price']}$ ({company['Change']}%)\n"
-            text += f"Market cap: {round(company['Market_cap']/1000000, 2)}T$"
+            text += f"Market cap: {round(company['Market_cap'] / 1000000, 2)}T$"
 
             # Color green or red respectively
             if company['Change'] < 0:
                 self._company_labels.append(tk.Label(self, text=text, fg="#ef4444",
-                                                    font=(protocol.FONT_NAME, int(0.725 * protocol.FONT_SIZE))))
+                                                     font=(protocol.FONT_NAME, int(0.725 * protocol.FONT_SIZE))))
             else:
                 self._company_labels.append(tk.Label(self, text=text, fg="#059669",
                                                      font=(protocol.FONT_NAME, int(0.725 * protocol.FONT_SIZE))))
@@ -439,14 +440,14 @@ class StocksFrame(AppFrame):
             logo_image = protocol.open_image(logo_file, (105, 105))
 
             # Add objects to lists
-            self._images.append(logo_image) # Reference has to be saved
+            self._images.append(logo_image)  # Reference has to be saved
             self._image_labels.append(tk.Label(self, image=logo_image))
             self._buy_buttons.append(tk.Button(self, text="Buy",
                                                font=(protocol.FONT_NAME, int(0.625 * protocol.FONT_SIZE)),
-                                               command=lambda n=company['Name']:self._on_click_buy(n)))
+                                               command=lambda n=company['Name']: self._on_click_buy(n)))
             self._sell_buttons.append(tk.Button(self, text="Sell",
                                                 font=(protocol.FONT_NAME, int(0.625 * protocol.FONT_SIZE)),
-                                                command=lambda n=company['Name']:self._on_click_sell(n)))
+                                                command=lambda n=company['Name']: self._on_click_sell(n)))
 
         self._place_objects()
 
@@ -526,13 +527,13 @@ class BalanceFrame(AppFrame):
         self._my_stocks_label = tk.Label(self, text="My stocks",
                                          font=(protocol.FONT_NAME, int(1.75 * protocol.FONT_SIZE)))
         self._back_button = tk.Button(self, text="Back", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(StocksFrame))
+                                      command=lambda: self.app_master.show_frame(StocksFrame))
 
         # Add value to stocks
         stocks_info = []
-        price = 0 # Default price
+        price = 0  # Default price
         for entry in self.app_master.stocks[self.app_master.username]:
-            for company in self.app_master.companies: # Find the company from entry in the list
+            for company in self.app_master.companies:  # Find the company from entry in the list
                 if company['Name'] == entry[0]:
                     price = company['Price']
                     break
@@ -547,7 +548,7 @@ class BalanceFrame(AppFrame):
         # Create portfolio value
         self._portfolio_value: int = 0
         for entry in stocks_info:
-            self._portfolio_value += entry[1] * entry[2] # Add amount of stocks * value of each stock
+            self._portfolio_value += entry[1] * entry[2]  # Add amount of stocks * value of each stock
         self._portfolio_value_label = tk.Label(self, text=f"Your portfolio value is {round(self._portfolio_value, 2)}$",
                                                font=protocol.FONT, fg='#008000')
 
@@ -569,7 +570,7 @@ class ErrorFrame(AppFrame):
 
         # Create back button
         self._back_button = tk.Button(self, text="Back to previous page", font=protocol.FONT,
-                                      command=lambda:self.app_master.show_frame(type(self.app_master.previous_frame)))
+                                      command=lambda: self.app_master.show_frame(type(self.app_master.previous_frame)))
 
         # Create error text
         x = protocol.RIGHT_X
@@ -604,7 +605,7 @@ class ClientApp(tk.Tk):
         self.converts: dict = {}
         self.stocks: dict = {}
 
-        self.companies = None # Will be filled later by the server
+        self.companies = None  # Will be filled later by the server
 
         # Used in ErrorFrame to return to previous page
         self.previous_frame = None
@@ -671,24 +672,24 @@ class ClientApp(tk.Tk):
                 elif data == "LOGINFAIL":
                     log("Login failed")
                     self._current_frame.show_fail()
-                elif data == "FORGOTEMAIL": # Forgot password, passed stage 1
+                elif data == "FORGOTEMAIL":  # Forgot password, passed stage 1
                     log("Forgot email successful")
                     self.show_frame(ForgotCodeFrame)
-                elif data == "FORGOTEMAILFAIL": # Forgot password, failed stage 1
+                elif data == "FORGOTEMAILFAIL":  # Forgot password, failed stage 1
                     log("Forgot email failed")
                     self._current_frame.show_not_found()
-                elif data == "FORGOTCODE": # Forgot password, passed stage 2
+                elif data == "FORGOTCODE":  # Forgot password, passed stage 2
                     log("Forgot code successful")
                     self.show_frame(ForgotSetFrame)
-                elif data == "FORGOTCODEFAIL": # Forgot password, failed stage 2
+                elif data == "FORGOTCODEFAIL":  # Forgot password, failed stage 2
                     log("Forgot code failed")
                     self._current_frame.show_wrong()
-                elif data == "FORGOTSETPASSWORD": # Forgot password, passed stage 3
+                elif data == "FORGOTSETPASSWORD":  # Forgot password, passed stage 3
                     log("Password reset")
                     self.show_frame(LoginFrame)
                 elif data == "CLOSE":
                     log("Received close message")
-                    self.previous_frame = self._current_frame # Handle previous frame
+                    self.previous_frame = self._current_frame  # Handle previous frame
                     self.show_frame(ErrorFrame)
                 elif '=' in data or data == protocol.ERROR_MSG:
                     try:
@@ -701,7 +702,7 @@ class ClientApp(tk.Tk):
                         amount = data_words[0]
                         result = data_words[3]
 
-                        try: # May raise KeyError because self.converts[self.username] might not exist
+                        try:  # May raise KeyError because self.converts[self.username] might not exist
                             if len(self.converts[self.username]) == protocol.TBL_CAPACITY:
                                 self.converts[self.username].pop(0)
                         except KeyError:
@@ -735,7 +736,7 @@ class ClientApp(tk.Tk):
     def _close_window(self):
         log("Client is shutting down")
         self.client_bl.on_close()
-        self.destroy() # Has to be included in order to actually close the window
+        self.destroy()  # Has to be included in order to actually close the window
 
 
 if __name__ == "__main__":

@@ -4,12 +4,13 @@ from smtplib import SMTP_SSL
 from email.message import EmailMessage
 from os import getenv
 
+
 class Emailer:
     # One emailer for the entire server, same as converter
     def __init__(self):
         # Get login credentials
         self._email_address = getenv("EMAIL_ADDRESS")
-        email_password = getenv("EMAIL_PASSWORD") # Not a property to increase security
+        email_password = getenv("EMAIL_PASSWORD")  # Not a property to increase security
         log("Loaded login credentials from .env")
 
         # Connect to Gmail's SMTP server

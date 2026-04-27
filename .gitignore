@@ -1,5 +1,5 @@
 ~$*.doc
--$*.docx
+~$*.docx
 .idea
 __pycharm__
 .env

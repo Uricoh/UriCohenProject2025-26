@@ -31,7 +31,7 @@ class ClientHandler:
 
                 if user_data[0] == "SIGNUP":
                     user_exists = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?
-                    ''', (user_data[1], )).fetchone()
+                    ''', (user_data[1],)).fetchone()
 
                     if user_exists:
                         self.client_socket.sendall("SIGNUPFAIL".encode(protocol.ENCODE_FORMAT))
@@ -64,7 +64,7 @@ class ClientHandler:
                         (user_data[1], user_data[2])).fetchone()
                     # No need for commit because DB hasn't been changed
 
-                    if result: # If such account found
+                    if result:  # If such account found
                         log(f"Login done, Username: {user_data[1]}")
                         self._username = user_data[1]
 
@@ -92,7 +92,7 @@ class ClientHandler:
                         (self._email,)).fetchone()
                     # No need for commit because DB hasn't been changed
 
-                    if not result: # If such account not found
+                    if not result:  # If such account not found
                         self.client_socket.sendall("FORGOTEMAILFAIL".encode(protocol.ENCODE_FORMAT))
                         log("Forgot password email fail message sent")
                         continue
@@ -134,7 +134,6 @@ class ClientHandler:
                     self._send_stocks()
                     Thread(target=self._send_stocks_hourly, daemon=True).start()
 
-
                 elif user_data[0] == "BUY":
                     # Data
                     company_name = user_data[1]
@@ -145,9 +144,10 @@ class ClientHandler:
 
                         (user_id, company_name)).fetchone()
 
-                    if entry: # Used to check if there is such stock exists for the user
+                    if entry:  # Used to check if there is such stock exists for the user
                         cursor.execute(
-                            f"UPDATE {protocol.STOCKS_TBL_NAME} SET amount = amount + 1 WHERE userid = ? AND companyname = ?",
+                            f'''UPDATE {protocol.STOCKS_TBL_NAME} SET amount = amount + 1
+                                WHERE userid = ? AND companyname = ?''',
                             (user_id, company_name))
                     else:
                         cursor.execute(
@@ -198,7 +198,7 @@ class ClientHandler:
                     # Add to convert table
                     if self._username != protocol.GUEST_USERNAME:
                         user_id = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?''',
-                                                (self._username, )).fetchone()[0]
+                                                 (self._username,)).fetchone()[0]
                         cursor.execute(f'''INSERT INTO {protocol.CONVERT_TBL_NAME}
                                         (userid, amount, source, result, dest) VALUES (?, ?, ?, ?, ?)''',
                                        (user_id, amount, source, rate, dest))
@@ -215,7 +215,7 @@ class ClientHandler:
                     if self._client_ip in client:
                         self._server_bl.client_list.remove(client)
                         log("Stopped client removed from list")
-                        break # Only one connection may exist per IP address
+                        break  # Only one connection may exist per IP address
 
                 self.client_socket.close()
                 conn.close()
@@ -228,7 +228,7 @@ class ClientHandler:
     def _get_history(self) -> list[list]:
         cursor = protocol.connect_to_db()[1]
         user_id = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?''',
-                                                (self._username, )).fetchone()[0]
+                                 (self._username,)).fetchone()[0]
 
         table_history = cursor.execute(f'''SELECT * FROM {protocol.CONVERT_TBL_NAME}
                                             WHERE userid = {user_id}''').fetchall()

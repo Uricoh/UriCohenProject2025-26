@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 from Provider import Provider
 
+
 class CurrencyProvider(Provider):
     def __init__(self):
         # Constructor
@@ -26,8 +27,8 @@ class CurrencyProvider(Provider):
         self._status_code = response.status_code
         self._rates: dict = {}
         self._time: str = ''
-        if self._status_code == 200: # 200 means success
-            json_response: dict = response.json() # Method response.json() returns dict, despite its name
+        if self._status_code == 200:  # 200 means success
+            json_response: dict = response.json()  # Method response.json() returns dict, despite its name
             self._rates = json_response['rates']
             # Convert unix to datetime and then to string
             self._time = datetime.fromtimestamp(json_response['updated']).strftime("%Y-%m-%d %H:%M:%S")

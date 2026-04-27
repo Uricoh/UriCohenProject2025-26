@@ -5,6 +5,7 @@ THIS FILE CONTAINS UNSAFE CODE AND HENCE IS NOT USED IN THE PROJECT
 import protocol
 from protocol import log
 
+
 # WARNING: The following functions (update_() and un_update_emails()) will DELETE any actual emails from the database
 def update_emails():
     user_count: int = cursor.execute(f"SELECT COUNT(*) FROM {protocol.USER_TBL_NAME}").fetchone()[0] + 1
@@ -12,11 +13,13 @@ def update_emails():
         cursor.execute(f"UPDATE {protocol.USER_TBL_NAME} SET email = '{f'{user}@gmail.com'}' WHERE userid = {user}")
         conn.commit()
 
+
 def un_update_emails():
     user_count: int = cursor.execute(f"SELECT COUNT(*) FROM {protocol.USER_TBL_NAME}").fetchone()[0] + 1
     for user in range(1, user_count):
         cursor.execute(f"UPDATE {protocol.USER_TBL_NAME} SET email = 'EXAMPLE' WHERE id = {user}")
         conn.commit()
+
 
 def set_field(user_id: int, field_name: str, field_value):
     # Get list of all field names
@@ -32,6 +35,7 @@ def set_field(user_id: int, field_name: str, field_value):
     else:
         print("Field name does not exist")
 
+
 def see_all_tables():
     user_rows = cursor.execute(f"SELECT * FROM {protocol.USER_TBL_NAME}").fetchall()
     for row in user_rows:
@@ -40,7 +44,6 @@ def see_all_tables():
     convert_rows = cursor.execute(f"SELECT * FROM {protocol.CONVERT_TBL_NAME}").fetchall()
     for row in convert_rows:
         print(row)
-
 
 
 conn, cursor = protocol.connect_to_db()

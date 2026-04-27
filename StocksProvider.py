@@ -6,6 +6,7 @@ from Provider import Provider
 from threading import Thread
 import base64
 
+
 class StocksProvider(Provider):
     def __init__(self):
         # Constructor
@@ -31,7 +32,7 @@ class StocksProvider(Provider):
         threads = []
 
         for company in self.companies:
-            thread = Thread(target=self._get_data, args=(company, ), daemon=True)
+            thread = Thread(target=self._get_data, args=(company,), daemon=True)
             thread.start()
             threads.append(thread)
 
@@ -49,7 +50,7 @@ class StocksProvider(Provider):
         # Save data
         company["Price"] = item_response["c"]
         company["Change"] = item_response["dp"]
-        company["Market_cap"] = company_response["marketCapitalization"] # Appears in API as millions of US$
+        company["Market_cap"] = company_response["marketCapitalization"]  # Appears in API as millions of US$
         response_logo = requests.get(company_response["logo"])
         bytes_logo = base64.b64encode(response_logo.content)
         company["Encoded_logo"] = bytes_logo.decode(protocol.ENCODE_FORMAT)

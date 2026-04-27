@@ -3,7 +3,8 @@ from threading import Thread
 from protocol import log
 import time
 
-class Provider(ABC): # Template for all classes that communicate with a data API
+
+class Provider(ABC):  # Template for all classes that communicate with a data API
     # One provider of every type is always used
     def __init__(self):
         self._status_code = None
