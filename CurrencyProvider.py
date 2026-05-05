@@ -20,7 +20,8 @@ class CurrencyProvider(Provider):
         api_key = getenv("CURRENCY_API_KEY")
 
         # Request data
-        url = f"https://currencyapi.net/api/v1/rates?base={protocol.BASE_CURRENCY}&output=json&key={api_key}"
+        # API will move to v2 (version 2) starting July 31, 2026. Until then both v1 and v2 work properly
+        url = f"https://currencyapi.net/api/v2/rates?base={protocol.BASE_CURRENCY}&output=json&key={api_key}"
         response = requests.get(url)
         log("Received currency rates from API")
 

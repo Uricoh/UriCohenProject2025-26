@@ -1,4 +1,6 @@
 # This page lists all currencies supported by the API, and thus by this app
+# This list is relevant for version 1 of the API (v1).
+# Starting July 31, 2026, the API will move to v2 and more currencies will be added
 
 currencies = [
     "ILS - Israeli Shekel",

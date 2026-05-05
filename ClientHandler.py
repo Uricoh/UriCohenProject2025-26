@@ -32,8 +32,10 @@ class ClientHandler:
                 if user_data[0] == "SIGNUP":
                     user_exists = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE username = ?
                     ''', (user_data[1],)).fetchone()
+                    email_exists = cursor.execute(f'''SELECT * FROM {protocol.USER_TBL_NAME} WHERE email = ?
+                    ''', (user_data[3],)).fetchone()
 
-                    if user_exists:
+                    if user_exists or email_exists:
                         self.client_socket.sendall("SIGNUPFAIL".encode(protocol.ENCODE_FORMAT))
                         log("Signup fail message sent")
 
