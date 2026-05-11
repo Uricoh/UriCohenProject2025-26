@@ -1,8 +1,8 @@
 # Imports
-from abc import ABC, abstractmethod
-from ClientBL import ClientBL
 import protocol
 from protocol import log
+from abc import ABC, abstractmethod
+from ClientBL import ClientBL
 import tkinter as tk
 from tkinter import ttk, PhotoImage
 from threading import Thread
@@ -37,7 +37,7 @@ class AppFrame(tk.Frame, ABC):  # Frame template for the frames, they should inh
         self.canvas.create_text(x, y, text=f"👤{self.app_master.username}", fill="#c58917", font=protocol.FONT)
 
     @abstractmethod
-    def _place_objects(self):
+    def _place_objects(self) -> None:
         pass  # This method must be implemented by every frame individually
 
 
@@ -106,10 +106,10 @@ class LoginFrame(AppFrame):
         self.app_master.username = self._username_entry.get()
 
         # Log username
-        log(f"Username: {self._username_entry.get()}")
+        log(f"Username: {self.app_master.username}")
 
         # Make JSON
-        user_data = ("LOGIN", self._username_entry.get(), protocol.get_hash(self._password_entry.get()))
+        user_data = ("LOGIN", self.app_master.username, protocol.get_hash(self._password_entry.get()))
         json_data = protocol.make_json(user_data)
 
         # Send JSON to server
@@ -158,33 +158,34 @@ class SignupFrame(AppFrame):
         self._back_button.place(x=protocol.RIGHT_X, y=230)
 
     def _on_click_signup(self):
-        # Save username
+        # Save values
         self.app_master.username = self._username_entry.get()
+        user_password = self._password_entry.get()
+        user_email = self._email_entry.get()
 
         # Log text field values
-        log(f"Username: {self._username_entry.get()}")
-        log(f"Password: {self._password_entry.get()}")
-        log(f"Email: {self._email_entry.get()}")
+        log(f"Username: {self.app_master.username}")
+        log(f"Password: {user_password}")
+        log(f"Email: {user_email}")
 
         # Check if password is invalid
-        if len(self._password_entry.get()) < protocol.MIN_PASSWORD_LENGTH:
+        if len(user_password) < protocol.MIN_PASSWORD_LENGTH:
             self.show_fail()
+            return
 
-        else:
-            # Check for email validity
-            try:
-                validate_email(self._email_entry.get())
+        # Check for email validity
+        try:
+            validate_email(user_email)
 
-                # Make JSON
-                user_data = ("SIGNUP", self._username_entry.get(), protocol.get_hash(self._password_entry.get()),
-                             self._email_entry.get())
-                json_data = protocol.make_json(user_data)
+            # Make JSON
+            user_data = ("SIGNUP", self.app_master.username, protocol.get_hash(user_password), self._email_entry.get())
+            json_data = protocol.make_json(user_data)
 
-                # Send JSON to server
-                self.client_bl.send_data(json_data)
+            # Send JSON to server
+            self.client_bl.send_data(json_data)
 
-            except EmailNotValidError:
-                self.show_fail()
+        except EmailNotValidError:
+            self.show_fail()
 
     def show_fail(self):
         self._fail_label.place(x=protocol.LEFT_X, y=2 * protocol.CENTER_Y)
@@ -217,10 +218,12 @@ class ForgotEmailFrame(AppFrame):
         self._back_button.place(x=450, y=int(1.85 * protocol.CENTER_Y))
 
     def _on_click_enter(self):
+        user_email = self._email_entry.get()
+
         log(f"Email: {self._email_entry.get()}")
 
         # Make JSON
-        user_data = ("FORGOTEMAIL", self._email_entry.get())
+        user_data = ("FORGOTEMAIL", user_email)
         json_data = protocol.make_json(user_data)
 
         # Send JSON to server
@@ -257,10 +260,12 @@ class ForgotCodeFrame(AppFrame):
         self._back_button.place(x=450, y=int(1.85 * protocol.CENTER_Y))
 
     def on_click_enter(self):
-        log(f"Code: {self._code_entry.get()}")
+        user_code = self._code_entry.get()
+
+        log(f"Code: {user_code}")
 
         # Make JSON
-        user_data = ("FORGOTCODE", self._code_entry.get())
+        user_data = ("FORGOTCODE", user_code)
         json_data = protocol.make_json(user_data)
 
         # Send JSON to server
@@ -357,13 +362,16 @@ class MainFrame(AppFrame):
         log(f"Currencies switched, now {self._from_combobox.get()} to {self._to_combobox.get()}")
 
     def _on_click_convert(self):
-        log("Conversion process started")
-        log(f"From {self._from_combobox.get()}")
-        log(f"To {self._to_combobox.get()}")
-        log(f"Amount: {self._amount_entry.get()}")
+        source = self._from_combobox.get()
+        dest = self._to_combobox.get()
+        amount = self._amount_entry.get()
 
-        user_info = ("CONVERT", self._from_combobox.get().split()[0], self._to_combobox.get().split()[0],
-                     self._amount_entry.get())
+        log("Conversion process started")
+        log(f"From {source}")
+        log(f"To {dest}")
+        log(f"Amount: {amount}")
+
+        user_info = ("CONVERT", source.split()[0], dest.get().split()[0], amount.get())
         json_info = protocol.make_json(user_info)
 
         # Send JSON to server
@@ -546,7 +554,7 @@ class BalanceFrame(AppFrame):
             self._tree = protocol.create_table(self.app_master, protocol.STOCKS_TBL_HEADERS, [])
 
         # Create portfolio value
-        self._portfolio_value: int = 0
+        self._portfolio_value = 0
         for entry in stocks_info:
             self._portfolio_value += entry[1] * entry[2]  # Add amount of stocks * value of each stock
         self._portfolio_value_label = tk.Label(self, text=f"Your portfolio value is {round(self._portfolio_value, 2)}$",
@@ -637,7 +645,7 @@ class ClientApp(tk.Tk):
             log("Sent stock value request")
             while True:
                 # Listen and proceed by instructions from server
-                data: str = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT)
+                data: str = self.client_bl.socket.recv(protocol.BUFFER_SIZE).decode(protocol.ENCODE_FORMAT).strip()
 
                 # Handle large message logic
                 if data.startswith(protocol.LARGE_SYMBOL):
@@ -648,7 +656,7 @@ class ClientApp(tk.Tk):
                         # Shouldn't be decoded now in order to calculate bytes length
                         data_bytes.extend(self.client_bl.socket.recv(protocol.BUFFER_SIZE))
 
-                    data = data_bytes.decode(protocol.ENCODE_FORMAT)
+                    data = data_bytes.decode(protocol.ENCODE_FORMAT).strip()
 
                 if data.startswith("[") and data.endswith("]") or data.startswith("{") and data.endswith("}"):
                     # Checks if data can be a JSON string
@@ -715,7 +723,7 @@ class ClientApp(tk.Tk):
 
                         log(f"Result message received, source={source}, dest={dest}, amount={amount}, result={result}")
 
-                    except IndexError as e:
+                    except Exception as e:
                         log(f"Error: {e}")
 
                     self._current_frame.show_result(data)
@@ -735,7 +743,10 @@ class ClientApp(tk.Tk):
 
     def _close_window(self):
         log("Client is shutting down")
-        self.client_bl.on_close()
+        try:
+            self.client_bl.on_close()
+        except OSError:
+            pass
         self.destroy()  # Has to be included in order to actually close the window
 
 

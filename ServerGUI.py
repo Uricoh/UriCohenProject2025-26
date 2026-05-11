@@ -27,9 +27,9 @@ class ServerGUI:
         # Create buttons
         self._start_button = tk.Button(self._root, text="Start", font=protocol.FONT, command=self._on_click_start_gui)
         self._stop_button = tk.Button(self._root, text="Stop", font=protocol.FONT, command=self._on_click_stop_gui)
-        protocol.reverse_button(self._stop_button)
         self._refresh_button = tk.Button(self._root, text="Refresh", font=protocol.FONT,
                                          command=self._on_click_refresh_gui)
+        protocol.reverse_many_buttons((self._stop_button, self._refresh_button))
 
         # Create tree
         self._tree = protocol.create_table(self._root, protocol.SERVER_TBL_HEADERS, self._server_bl.client_list)
@@ -44,11 +44,11 @@ class ServerGUI:
         self._refresh_button.place(x=protocol.LEFT_X, y=575)
 
     def _on_click_start_gui(self):
-        protocol.reverse_many_buttons((self._start_button, self._stop_button))
+        protocol.reverse_many_buttons((self._start_button, self._stop_button, self._refresh_button))
         self._server_bl.on_click_start()
 
     def _on_click_stop_gui(self):
-        protocol.reverse_many_buttons((self._start_button, self._stop_button))
+        protocol.reverse_many_buttons((self._start_button, self._stop_button, self._refresh_button))
         self._server_bl.on_click_stop()
 
     def _on_click_refresh_gui(self):

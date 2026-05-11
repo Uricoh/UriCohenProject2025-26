@@ -77,6 +77,7 @@ def create_table(root: tk.Tk, headers: tuple, values: list[tuple]) -> ttk.Treevi
     return table
 
 
+# Caller should store return value in memory so it doesn't get garbage-collected
 def open_image(image_path: str | Path | BytesIO, area: tuple[int, int]) -> PhotoImage:
     image = Image.open(image_path)
     reimage = image.resize(area, Image.Resampling.LANCZOS)
@@ -113,7 +114,27 @@ def socket_alive(my_socket: socket) -> bool:
 def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     conn = sqlite3.connect(_DB_NAME)
     cursor = conn.cursor()
-    conn.commit()
+    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {USER_TBL_NAME} (
+                                        userid INTEGER PRIMARY KEY,
+                                        username TEXT NOT NULL,
+                                        password TEXT NOT NULL,
+                                        datetime TEXT NOT NULL,
+                                        email TEXT NOT NULL)
+                                        ''')
+    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {CONVERT_TBL_NAME} (
+                                        convertid INTEGER PRIMARY KEY,
+                                        userid INTEGER NOT NULL,
+                                        amount INTEGER NOT NULL,
+                                        source TEXT NOT NULL,
+                                        result INTEGER NOT NULL,
+                                        dest TEXT NOT NULL)
+                                        ''')
+    cursor.execute(f'''CREATE TABLE IF NOT EXISTS {STOCKS_TBL_NAME} (
+                                        orderid INTEGER PRIMARY KEY,
+                                        userid INTEGER NOT NULL,
+                                        companyname TEXT NOT NULL,
+                                        amount INTEGER NOT NULL)
+                                        ''')
     log("SQL connection established")
     return conn, cursor
 
@@ -159,9 +180,10 @@ RIGHT_X: Final[int] = int(0.65 * SCREEN_WIDTH)  # Right
 # Center variables are slightly higher and more left than mathematical centers, indicating start coordinates of elements
 CENTER_X: Final[int] = int((RIGHT_X + LEFT_X) / 2)
 CENTER_Y: Final[int] = int(0.4 * SCREEN_HEIGHT)
+TIMEOUT_LENGTH: Final[int] = 10 # In seconds
 SEC_CODE_LENGTH: Final[int] = 6
 MIN_PASSWORD_LENGTH: Final[int] = 8
-BUFFER_SIZE: Final[int] = 8196
+BUFFER_SIZE: Final[int] = 8192 # In bytes
 TBL_CAPACITY: Final[int] = 13  # Works for current table size and resolution, change constant if changing those
 HISTORY_TBL_HEADERS: Final[tuple[str, str, str, str]] = ("Source", "Dest", "Value", "Result")
 SERVER_TBL_HEADERS: Final[tuple[str, str, str]] = ("Client IP", "Port", "Time")
@@ -179,7 +201,7 @@ CONVERT_TBL_NAME: Final[str] = "CONVERTTBL"
 STOCKS_TBL_NAME: Final[str] = "STOCKSTBL"
 USER_TBL_NAME: Final[str] = "USERTBL"  # Variable name is USER_TBL_NAME because there may be more tables in the future
 APP_NAME: Final[str] = "Currency Converter"
-CURRENCIES: Final[list[str]] = currencies
+CURRENCIES: Final[tuple] = currencies
 
 # Commands that should be executed at the start of each program
 

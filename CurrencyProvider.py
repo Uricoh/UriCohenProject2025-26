@@ -18,11 +18,13 @@ class CurrencyProvider(Provider):
     def _fetch_data(self):
         # Get API key
         api_key = getenv("CURRENCY_API_KEY")
+        if not api_key:
+            raise ValueError
 
         # Request data
         # API will move to v2 (version 2) starting July 31, 2026. Until then both v1 and v2 work properly
         url = f"https://currencyapi.net/api/v2/rates?base={protocol.BASE_CURRENCY}&output=json&key={api_key}"
-        response = requests.get(url)
+        response = requests.get(url, timeout=protocol.TIMEOUT_LENGTH)
         log("Received currency rates from API")
 
         self._status_code = response.status_code
@@ -39,12 +41,14 @@ class CurrencyProvider(Provider):
 
     def convert_currencies(self, amount: float, source: str, dest: str) -> float:
         try:
+            if source == dest:
+                return float(amount)
             if source == protocol.BASE_CURRENCY:
                 return float(amount) * self._rates[dest]
             if dest == protocol.BASE_CURRENCY:
                 return float(amount) / self._rates[source]
             return float(amount) * self._rates[dest] / self._rates[source]
-        except (ValueError, IndexError, TypeError, OSError):  # Signals something wrong with the input or the API
-            return -1
+        except (ValueError, KeyError, TypeError, OSError):  # Signals something wrong with the input or the API
+            return -1.0
         finally:
             log("Value message sent")
